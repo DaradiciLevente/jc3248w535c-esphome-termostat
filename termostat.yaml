@@ -178,7 +178,6 @@ script:
       - lambda: |-
           if (fabsf(id(offset_salvat) - val) > 0.001f) id(offset_salvat) = val;
 
-  # Animație curată bazată pe timp, declanșată din script
   - id: animatie_schimbare_pagina
     mode: restart
     parameters:
@@ -236,17 +235,17 @@ climate:
 
 globals:
   # =========================================================================
-  # SETĂRI PENTRU ANIMAȚIE (MODIFICĂ AICI DUPĂ PLĂCERE)
+  # SETĂRI PENTRU ANIMAȚIE
   # =========================================================================
   - id: anim_duration_ms
     type: int
     restore_value: no
-    initial_value: '500' # Durata totală a animației în milisecunde (ex: 1000 = 1 secundă)
+    initial_value: '500'
     
   - id: anim_fps
     type: int
     restore_value: no
-    initial_value: '200'  # Numărul țintă de cadre pe secundă / fluiditate (ex: 200 cadre/secundă sau 100 cadre/secundă)
+    initial_value: '40'  # Modificat pentru stabilitatea magistralei SPI (maximul ecranului JC3248W535)
   # =========================================================================
 
   - id: target_temp
@@ -419,42 +418,47 @@ interval:
           float diff = target - temp;
           uint32_t now_ms = millis();
           uint32_t elapsed_s = (now_ms - id(last_heating_change)) / 1000;
+          
+          // Histerezis corectat pentru a reprezenta fluctuația totală (± jumătate din valoare)
+          float half_hyst = id(hysteresis) / 2.0f;
 
           if (!id(heating_active)) {
-            if (diff > id(hysteresis) && elapsed_s >= (uint32_t) id(min_time_sec)) {
+            if (diff > half_hyst && elapsed_s >= (uint32_t) id(min_time_sec)) {
               id(heating_active) = true;
               id(last_heating_change) = now_ms;
               id(releu).turn_on();
             }
           } else {
-            if (diff < -id(hysteresis) && elapsed_s >= (uint32_t) id(min_time_sec)) {
+            if (diff < -half_hyst && elapsed_s >= (uint32_t) id(min_time_sec)) {
               id(heating_active) = false;
               id(last_heating_change) = now_ms;
               id(releu).turn_off();
             }
           }
 
-  - interval: 80ms
+  # Interval consolidat pentru managementul ecranului (unifică fostul 80ms cu cel de 2ms)
+  - interval: 16ms
     then:
       - lambda: |-
           static uint32_t last_draw = 0;
           uint32_t now = millis();
-          bool anim = (id(heating_active) && !id(pagina_setari) && !id(animating));
-          if (now - last_draw >= (anim ? 80UL : 1000UL) || id(animating)) {
-            last_draw = now;
-            id(main_display).update();
-          }
-
-  # Interval bazat pe FPS-ul setat global sus
-  - interval: 2ms
-    then:
-      - lambda: |-
+          
           if (id(animating)) {
-            static uint32_t last_anim_frame = 0;
-            uint32_t now = millis();
-            uint32_t target_interval = (id(anim_fps) > 0) ? (1000UL / (uint32_t)id(anim_fps)) : 5UL;
-            if (now - last_anim_frame >= target_interval) {
-              last_anim_frame = now;
+            // Limitează la maxim ~40 FPS (25ms) pentru stabilitate SPI
+            uint32_t target_interval = (id(anim_fps) > 0) ? (1000UL / (uint32_t)id(anim_fps)) : 25UL;
+            if (target_interval < 25) target_interval = 25; // protecție hardware
+            
+            if (now - last_draw >= target_interval) {
+              last_draw = now;
+              id(main_display).update();
+            }
+          } else {
+            // Logica pentru starea de repaus sau încălzire
+            bool anim_flacara = (id(heating_active) && !id(pagina_setari));
+            uint32_t repaus_interval = anim_flacara ? 80UL : 1000UL;
+            
+            if (now - last_draw >= repaus_interval) {
+              last_draw = now;
               id(main_display).update();
             }
           }
