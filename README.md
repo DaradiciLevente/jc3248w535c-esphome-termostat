@@ -17,5 +17,3 @@ Advanced DIY Smart Thermostat built with JC3248W535C ESP32-S3 display board, ESP
 **If you choose to use this project anyway, you are solely and exclusively responsible for any consequences!**
 
 </font>
-
----
