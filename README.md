@@ -3,7 +3,7 @@
 Advanced DIY Smart Thermostat built with JC3248W535C ESP32-S3 display board, ESPHome, and Home Assistant[cite: 1].
 
 > [!WARNING]
->  {\color{red}**DISCLAIMER:**} 
+>  **DISCLAIMER:** 
 > * This project is a DIY (Do It Yourself) hobby endeavor. It involves working with sensitive electronic components, high and dangerous electrical voltages (230V), and gas heating systems.
 > 
 > * This project is provided for educational and experimental purposes only and is distributed "AS IS", without warranty of any kind, express or implied.
