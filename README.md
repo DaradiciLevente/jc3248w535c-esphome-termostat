@@ -95,3 +95,26 @@ esphome run termostat-esphome.yaml
 ```
 ##### (Note: For subsequent updates once the device is mounted on the wall and connected to your local network, ESPHome will automatically perform Over-The-Air (OTA) updates.)
 ---
+## 📱 Features & Touch Interface Guide
+
+The thermostat features a modern, responsive 3.5" IPS capacitive touch interface powered by the `AXS15231` controller and built using ESPHome's custom display rendering engine.
+
+### 1. Main Dashboard
+* **Real-time Clock & Date:** Synchronized automatically via SNTP (configured for your local timezone).
+* **Network & Weather Status:** Live Wi-Fi signal strength indicator and outdoor temperature/weather condition watermark (synced from Home Assistant).
+* **Current Room Temperature:** Large display showing the precise temperature measured by the local DS18B20 sensor (with customizable temperature calibration offset).
+* **Target Temperature Box:** Clear indication of the target setpoint (or holiday setpoint).
+* **Heating State Indicator:** Visual status showing **"ÎNCĂLZIRE"** (Heating active with a smooth animated flame effect), **"REPAUS"** (Idle), or **"OPRIT"** (Off mode).
+* **Quick Controls:** Direct `-` and `+` touch buttons at the bottom to adjust the target temperature by 0.5°C increments.
+* **Settings Access:** Tapping the gear icon in the top-right corner opens the settings menu with a smooth transition animation.
+
+### 2. Settings Menu
+Tapping the gear icon gives you direct access to configure critical parameters locally on the device (backed up to flash preferences):
+* **Unit of Measurement:** Toggle between Celsius (°C) and Fahrenheit (°F).
+* **Temperature Calibration (Calibrare):** Fine-tune sensor offsets from -5.0°C to +5.0°C.
+* **Hysteresis:** Adjust the heating differential (from 0.1°C to 2.0°C) to prevent short-cycling of the boiler.
+* **Minimum On/Off Time (Timp minim):** Set protection delays (0 to 600 seconds).
+* **Vacation Mode (Mod Vacanță):** Toggle vacation mode ON/OFF and set a dedicated eco-temperature limit (5.0°C to 20.0°C).
+* **Display Brightness (Luminozitate):** Adjust backlight PWM level from 10% to 100%.
+* **Outdoor Temperature Display:** Enable or disable the outdoor temperature and weather icon overlay on the main screen.
+---
