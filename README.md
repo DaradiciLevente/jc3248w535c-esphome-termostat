@@ -91,7 +91,7 @@ git clone https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat.git
 
 ### Step 2: Configure secrets.yaml
 In your main ESPHome configuration directory (where your secrets file resides), ensure you have defined the necessary credentials. Create or update your secrets.yaml file with the following entries:
-```bash
+```yaml
 wifi_ssid: "Your_WiFi_SSID"
 wifi_password: "Your_WiFi_Password"
 ap_ssid: "Thermostat-Fallback-AP"
@@ -110,7 +110,7 @@ api_key: "Your_Encryption_Key_Base64"
 > 
 ### Step 3: Update Sensor Entities (Substitutions)
 Open the YAML configuration file and update the top substitution variables to match your Home Assistant entity IDs:
-```bash
+```yaml
 substitutions:
   sensor_temp_exterior: "sensor.your_outdoor_temperature_sensor"
   sensor_stare_vreme: "weather.forecast_your_home"
