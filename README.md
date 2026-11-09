@@ -48,4 +48,5 @@ The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physica
 > [!CAUTION]
 > **ELECTRICAL HAZARD:** 
 > * Connecting the relay output to your heating system involves working with **230V mains voltage**. 
-> * Always disconnect the power supply from the central heating unit and the thermostat circuit before wiring any physical components. If you are unsure, consult a certified electrician.
+> * Always disconnect both the central heating boiler (gas/electric heating system) and the thermostat power supply from the mains before wiring any physical components. 
+> * If you are unsure or lack qualifications, always consult a certified electrician.
