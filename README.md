@@ -232,7 +232,7 @@ substitutions:
 Connect the board over USB and run:
 
 ```bash
-esphome run termostat-esphome.yaml
+esphome run termostat.yaml
 ```
 
 > [!NOTE]
