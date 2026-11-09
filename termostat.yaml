@@ -1,3 +1,11 @@
+substitutions:
+  # =========================================================================
+  # SETĂRI UTILIZATOR
+  # Modifică aici numele senzorilor tăi din Home Assistant
+  # =========================================================================
+  sensor_temp_exterior: "sensor.bme280test_bme280_temperature_2"
+  sensor_stare_vreme: "weather.forecast_home"
+
 esphome:
   name: termostat-esphome
   platformio_options:
@@ -110,6 +118,19 @@ sensor:
     state_class: measurement
     accuracy_decimals: 2
     entity_category: diagnostic
+
+  # Senzor preluat din Home Assistant (Temperatură)
+  - platform: homeassistant
+    id: ha_temp_ext
+    entity_id: ${sensor_temp_exterior}
+    internal: true
+
+# Senzor text preluat din Home Assistant (Stare Vreme)
+text_sensor:
+  - platform: homeassistant
+    id: ha_vreme_stare
+    entity_id: ${sensor_stare_vreme}
+    internal: true
 
 binary_sensor:
   - platform: template
@@ -234,9 +255,6 @@ climate:
       - logger.log: "Climate: Off mode"
 
 globals:
-  # =========================================================================
-  # SETĂRI PENTRU ANIMAȚIE
-  # =========================================================================
   - id: anim_duration_ms
     type: int
     restore_value: no
@@ -245,8 +263,7 @@ globals:
   - id: anim_fps
     type: int
     restore_value: no
-    initial_value: '40'  # Modificat pentru stabilitatea magistralei SPI (maximul ecranului JC3248W535)
-  # =========================================================================
+    initial_value: '40'
 
   - id: target_temp
     type: float
@@ -284,6 +301,10 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
+  - id: show_temp_ext
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
 
   - id: draft_mod_vacanta
     type: bool
@@ -313,6 +334,10 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
+  - id: draft_show_temp_ext
+    type: bool
+    restore_value: no
+    initial_value: 'false'
 
   - id: heating_active
     type: bool
@@ -419,7 +444,6 @@ interval:
           uint32_t now_ms = millis();
           uint32_t elapsed_s = (now_ms - id(last_heating_change)) / 1000;
           
-          // Histerezis corectat pentru a reprezenta fluctuația totală (± jumătate din valoare)
           float half_hyst = id(hysteresis) / 2.0f;
 
           if (!id(heating_active)) {
@@ -436,7 +460,6 @@ interval:
             }
           }
 
-  # Interval consolidat pentru managementul ecranului (unifică fostul 80ms cu cel de 2ms)
   - interval: 16ms
     then:
       - lambda: |-
@@ -444,16 +467,14 @@ interval:
           uint32_t now = millis();
           
           if (id(animating)) {
-            // Limitează la maxim ~40 FPS (25ms) pentru stabilitate SPI
             uint32_t target_interval = (id(anim_fps) > 0) ? (1000UL / (uint32_t)id(anim_fps)) : 25UL;
-            if (target_interval < 25) target_interval = 25; // protecție hardware
+            if (target_interval < 25) target_interval = 25; 
             
             if (now - last_draw >= target_interval) {
               last_draw = now;
               id(main_display).update();
             }
           } else {
-            // Logica pentru starea de repaus sau încălzire
             bool anim_flacara = (id(heating_active) && !id(pagina_setari));
             uint32_t repaus_interval = anim_flacara ? 80UL : 1000UL;
             
@@ -491,7 +512,7 @@ font:
   - file: "fonts/arial.ttf"
     id: font_setari_label
     size: 16
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț0123456789 .-°%"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț0123456789 .-°%:"
   - file: "fonts/arial.ttf"
     id: font_setari_btn
     size: 20
@@ -627,6 +648,12 @@ display:
         it.rectangle(start_x + 250, row_y, 30, 30, c_button_border);
         it.print(start_x + 265, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "+");
 
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Temp exterior");
+        it.filled_rectangle(start_x + 230, row_y, 60, 30, c_button_bg);
+        it.rectangle(start_x + 230, row_y, 60, 30, c_button_border);
+        it.print(start_x + 260, row_y + 15, id(font_setari_btn), id(draft_show_temp_ext) ? c_green : c_gray, TextAlign::CENTER, id(draft_show_temp_ext) ? "ON" : "OFF");
+
         int btn_y = 400;
         int btn_h = 50;
         it.filled_rectangle(start_x + 20, btn_y, 120, btn_h, c_button_bg);
@@ -675,6 +702,92 @@ display:
         if (bare_active >= 2) it.filled_rectangle(wifi_start_x + 5, wifi_base_y - 8, 3, 8, c_white);
         if (bare_active >= 3) it.filled_rectangle(wifi_start_x + 10, wifi_base_y - 12, 3, 12, c_white);
         if (bare_active >= 4) it.filled_rectangle(wifi_start_x + 15, wifi_base_y - 16, 3, 16, c_white);
+
+        // =========================================================
+        // AFIȘARE TEMPERATURĂ EXTERIOARĂ + ICON VREME (WATERMARK)
+        // =========================================================
+        if (id(show_temp_ext) && id(ha_temp_ext).has_state() && !isnan(id(ha_temp_ext).state)) {
+          std::string stare = id(ha_vreme_stare).has_state() ? id(ha_vreme_stare).state : "";
+          const char* stare_ro = "Necunoscut";
+          int w_icon = 0; // 0=nimic, 1=soare, 2=luna, 3=nor, 4=partial noros, 5=ploaie, 6=ninsoare, 7=furtuna, 8=ceata
+
+          if (stare == "sunny") { stare_ro = "Soare"; w_icon = 1; }
+          else if (stare == "clear-night") { stare_ro = "Cer senin"; w_icon = 2; }
+          else if (stare == "partlycloudy") { stare_ro = "Parțial noros"; w_icon = 4; }
+          else if (stare == "cloudy") { stare_ro = "Noros"; w_icon = 3; }
+          else if (stare == "rainy") { stare_ro = "Ploaie"; w_icon = 5; }
+          else if (stare == "pouring") { stare_ro = "Averse"; w_icon = 5; }
+          else if (stare == "snowy") { stare_ro = "Ninsoare"; w_icon = 6; }
+          else if (stare == "snowy-rainy") { stare_ro = "Lapoviță"; w_icon = 5; }
+          else if (stare == "lightning" || stare == "lightning-rainy") { stare_ro = "Furtună"; w_icon = 7; }
+          else if (stare == "fog") { stare_ro = "Ceață"; w_icon = 8; }
+          else if (stare == "windy" || stare == "windy-variant") { stare_ro = "Vânt"; w_icon = 3; }
+          else if (stare != "") { stare_ro = stare.c_str(); }
+
+          int cx = start_x + 160;
+          int cy = 35; // Centrul desenului grafic
+
+          // Culori filigran (watermark) - mai închise pentru a nu acoperi textul
+          Color wcld = Color(40, 45, 50); // Nor întunecat
+          Color wsun = Color(70, 65, 0);  // Soare întunecat
+          Color wrain = Color(30, 60, 90);
+          Color wsnw = Color(60, 70, 80);
+
+          // 1. DESEN ICONIȚĂ FUNDAL
+          if (w_icon == 1) { 
+            it.filled_circle(cx, cy, 16, wsun);
+            for(int i=0; i<8; i++) {
+              float a = i * 0.785f;
+              it.line(cx + cosf(a)*18, cy + sinf(a)*18, cx + cosf(a)*24, cy + sinf(a)*24, wsun);
+            }
+          } else if (w_icon == 2) { 
+            it.filled_circle(cx, cy, 15, wcld);
+            it.filled_circle(cx + 6, cy - 6, 12, Color::BLACK);
+          } else if (w_icon == 3) { 
+            it.filled_circle(cx, cy, 14, wcld);
+            it.filled_circle(cx-12, cy+5, 9, wcld);
+            it.filled_circle(cx+12, cy+5, 9, wcld);
+          } else if (w_icon == 4) { 
+            it.filled_circle(cx+8, cy-6, 12, wsun);
+            it.filled_circle(cx-4, cy+4, 12, wcld);
+            it.filled_circle(cx-15, cy+8, 8, wcld);
+            it.filled_circle(cx+7, cy+8, 8, wcld);
+          } else if (w_icon == 5) { 
+            it.filled_circle(cx, cy-4, 12, wcld);
+            it.filled_circle(cx-10, cy+2, 8, wcld);
+            it.filled_circle(cx+10, cy+2, 8, wcld);
+            it.line(cx-8, cy+10, cx-10, cy+18, wrain);
+            it.line(cx, cy+10, cx-2, cy+18, wrain);
+            it.line(cx+8, cy+10, cx+6, cy+18, wrain);
+          } else if (w_icon == 6) { 
+            it.filled_circle(cx, cy-4, 12, wcld);
+            it.filled_circle(cx-10, cy+2, 8, wcld);
+            it.filled_circle(cx+10, cy+2, 8, wcld);
+            it.filled_circle(cx-8, cy+14, 2, wsnw);
+            it.filled_circle(cx, cy+12, 2, wsnw);
+            it.filled_circle(cx+8, cy+14, 2, wsnw);
+          } else if (w_icon == 7) { 
+            it.filled_circle(cx, cy-4, 12, wcld);
+            it.filled_circle(cx-10, cy+2, 8, wcld);
+            it.filled_circle(cx+10, cy+2, 8, wcld);
+            it.filled_triangle(cx+2, cy+8, cx-4, cy+14, cx+4, cy+14, wsun);
+            it.filled_triangle(cx-2, cy+20, cx-4, cy+14, cx+4, cy+14, wsun);
+          } else if (w_icon == 8) { 
+            it.line(cx-12, cy-4, cx+12, cy-4, wcld);
+            it.line(cx-16, cy, cx+16, cy, wcld);
+            it.line(cx-12, cy+4, cx+12, cy+4, wcld);
+          }
+
+          // 2. TEXT PESTE ICONIȚĂ
+          char t_ext_buf[32];
+          snprintf(t_ext_buf, sizeof(t_ext_buf), "%.1f°%s", temp_display(id(ha_temp_ext).state), unit_str());
+          
+          it.print(cx + 40, 5, id(font_setari_label), c_white, TextAlign::TOP_CENTER, t_ext_buf);
+          
+          // Umbră pentru contrast peste liniile iconiței
+          it.print(cx + 1, 64, id(font_setari_label), Color::BLACK, TextAlign::TOP_CENTER, stare_ro);
+          it.print(cx, 63, id(font_setari_label), Color(200, 200, 200), TextAlign::TOP_CENTER, stare_ro);
+        }
 
         {
           int gear_x = start_x + 298;
@@ -894,6 +1007,7 @@ touchscreen:
                 id(mod_vacanta) = id(draft_mod_vacanta);
                 id(temp_vacanta) = id(draft_temp_vacanta);
                 id(unitate_fahrenheit) = id(draft_unitate_fahrenheit);
+                id(show_temp_ext) = id(draft_show_temp_ext);
                 id(salveaza_luminozitate).stop();
                 id(luminozitate) = id(draft_luminozitate);
                 id(gpio_backlight_pwm).set_level(id(luminozitate) / 100.0f);
@@ -991,6 +1105,11 @@ touchscreen:
                 }
               }
 
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30 && x > 230 && x < 290) {
+                id(draft_show_temp_ext) = !id(draft_show_temp_ext);
+              }
+
               return;
             }
 
@@ -1002,6 +1121,7 @@ touchscreen:
               id(draft_unitate_fahrenheit) = id(unitate_fahrenheit);
               id(draft_luminozitate) = id(luminozitate_nr).has_state() ? (int) id(luminozitate_nr).state : id(luminozitate);
               id(draft_offset) = id(offset_temp);
+              id(draft_show_temp_ext) = id(show_temp_ext);
               
               id(animatie_schimbare_pagina).execute(true);
               return;
