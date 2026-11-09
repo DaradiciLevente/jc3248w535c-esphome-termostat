@@ -20,3 +20,13 @@ To successfully compile and flash this firmware to your JC3248W535 display board
 * **Python:** `3.11.6+`
 * **ESPHome:** `2025.11.0+`
 * **Framework:** `ESP-IDF` (automatically configured via platformio_options in the YAML file)
+---
+  ## 🌟 Core Architecture & Home Assistant Integration
+
+This thermostat is designed with a hybrid architecture that ensures absolute reliability and flexibility:
+
+* **Standalone Operation (No HA Required):** The ESP32-S3 board runs its own internal control loop via ESPHome. It reads the local DS18B20 temperature sensor, evaluates hysteresis, controls the heating relay directly, and allows full manual control (temperature adjustment, calibration, hysteresis, vacation mode, and screen brightness) directly from the touch display—even if your Wi-Fi or Home Assistant server goes offline.
+* **Home Assistant Integration (Enhanced Features):** When connected to Home Assistant via the native API, the thermostat unlocks extended capabilities:
+  * Synchronization of target temperatures and vacation modes.
+  * Integration of outdoor weather data and condition icons (`weather.forecast_home`).
+  * Remote monitoring and automations via Home Assistant dashboards.
