@@ -161,6 +161,11 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 Distributed under the **MIT License**. See `LICENSE` file for more information.
 ---
 
-## 🌟 Crafted with Passion
 
-Made with dedication and passion for the DIY and open-source maker community by **Levente Daradici**.
+<div align="center">
+
+> *"Built with passion for makers, DIY enthusiasts, and smart home tinkerers."*
+> 
+> **Crafted by Levente Daradici** 🚀
+
+</div>
