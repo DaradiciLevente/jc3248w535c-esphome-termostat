@@ -114,7 +114,8 @@ Tapping the gear icon gives you direct access to configure critical parameters l
 * **Temperature Calibration (Calibrare):** Fine-tune sensor offsets from -5.0°C to +5.0°C.
 * **Hysteresis:** Adjust the heating differential (from 0.1°C to 2.0°C) to prevent short-cycling of the boiler.
 * **Minimum On/Off Time (Timp minim):** Set protection delays (0 to 600 seconds).
-* **Vacation Mode (Mod Vacanță):** Toggle vacation mode ON/OFF and set a dedicated eco-temperature limit (5.0°C to 20.0°C).
+* **Vacation Mode (Mod Vacanță):** Toggle vacation mode **ON/OFF** to quickly switch between normal operation and eco mode.
+* **Vacation Temperature (Temp. Vacanță):** Set the dedicated eco-temperature target used when vacation mode is active (adjustable from 5.0°C to 20.0°C).
 * **Display Brightness (Luminozitate):** Adjust backlight PWM level from 10% to 100%.
 * **Outdoor Temperature Display:** Enable or disable the outdoor temperature and weather icon overlay on the main screen.
 ---
