@@ -30,3 +30,22 @@ This thermostat is designed with a hybrid architecture that ensures absolute rel
   * Synchronization of target temperatures and vacation modes.
   * Integration of outdoor weather data and condition icons (`weather.forecast_home`).
   * Remote monitoring and automations via Home Assistant dashboards.
+---
+## 🔌 Wiring & Hardware Connections
+
+The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physical pin allocations and peripheral connections used in this project:
+
+| Component | Pin / Interface | Description |
+| :--- | :--- | :--- |
+| **Display Board** | `JC3248W535` | 3.5" IPS Capacitive Touch Display (MIPI SPI) |
+| **Touch Controller** | `AXS15231` | Integrated capacitive touch interface |
+| **Backlight PWM** | `GPIO 1` | Backlight brightness control via LEDC |
+| **DS18B20 Sensor** | `GPIO 17` | 1-Wire data line for room temperature measurement (requires 4.7kΩ pull-up resistor) |
+| **Heating Relay** | `GPIO 18` | Digital output to trigger the boiler relay module |
+| **I2C Bus** | SDA: `GPIO 4`, SCL: `GPIO 8` | Reserved for optional sensors (e.g., SHT45 / BME280) |
+| **SPI Bus (Display)** | CLK: `GPIO 47`, Data: `[21, 48, 40, 39]` | Quad SPI interface for high-speed display rendering |
+
+> [!CAUTION]
+> **ELECTRICAL HAZARD:** 
+> * Connecting the relay output to your heating system involves working with **230V mains voltage**. 
+> * Always disconnect the power supply from the central heating unit and the thermostat circuit before wiring any physical components. If you are unsure, consult a certified electrician.
