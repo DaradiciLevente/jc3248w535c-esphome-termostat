@@ -13,12 +13,6 @@
 
 <br>
 
-<a href="https://www.youtube.com/watch?v=7YacdU6UZSM">
-  <img src="images/main2.jpg" alt="Thermostat main dashboard" width="320">
-</a>
-
-**[▶ Watch the demo on YouTube](https://www.youtube.com/watch?v=7YacdU6UZSM)**
-
 </div>
 
 ---
