@@ -73,7 +73,7 @@ Follow these steps to set up, configure, and flash the firmware onto your JC3248
 ### Step 1: Clone or Download the Repository
 Clone this repository or download the source files into your local ESPHome configuration directory:
 ```bash
-git clone [https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat]([https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat]
+git clone [https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat.git](https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat.git)
 ```
 
 ### Step 2: Configure secrets.yaml
