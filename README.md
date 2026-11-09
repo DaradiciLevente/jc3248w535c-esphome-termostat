@@ -219,8 +219,8 @@ Distributed under the **MIT License**. See `LICENSE` file for more information.
 
 <div align="center">
 
-> *"Built with passion for makers, DIY enthusiasts, and smart home tinkerers."*
-> 
-> **Crafted by Levente Daradici** 🚀
+ *"Built with passion for makers, DIY enthusiasts, and smart home tinkerers."*
+ 
+**Crafted by Levente Daradici** 🚀
 
 </div>
