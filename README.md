@@ -1,6 +1,7 @@
-# jc3248w535c-esphome-termostat
+# ⚡ ESP32-S3 Touch Thermostat & Boiler Controller
 
-Advanced DIY Smart Thermostat built with JC3248W535C ESP32-S3 display board, ESPHome, and Home Assistant.
+An advanced, standalone-capable ESPHome thermostat featuring a 3.5" IPS touch display, local control loop, and Home Assistant integration.
+
 ---
 
 > [!WARNING]
@@ -11,7 +12,9 @@ Advanced DIY Smart Thermostat built with JC3248W535C ESP32-S3 display board, ESP
 > * The author does not recommend, endorse, or warrant the use of this project in real-world, production, or home installations.
 > * The author assumes NO legal responsibility, liability, or obligation for any direct or indirect damages, property loss, personal injury, or accidents resulting from the use, misuse, or implementation of this project.
 > * By downloading, cloning, or using any part of this code or documentation, you explicitly acknowledge that you are solely responsible for compliance with local electrical and safety regulations, and you assume 100% of the risk and legal liability.
+
 ---
+
 ## 🛠️ Prerequisites & Environment
 
 To successfully compile and flash this firmware to your JC3248W535 display board, the project has been tested and verified with the following environment:
@@ -20,7 +23,9 @@ To successfully compile and flash this firmware to your JC3248W535 display board
 * **Python:** `3.11.6+`
 * **ESPHome:** `2025.11.0+`
 * **Framework:** `ESP-IDF` (automatically configured via platformio_options in the YAML file)
+
 ---
+
   ## 🌟 Core Architecture & Home Assistant Integration
 
 This thermostat is designed with a hybrid architecture that ensures absolute reliability and flexibility:
@@ -30,7 +35,9 @@ This thermostat is designed with a hybrid architecture that ensures absolute rel
   * Synchronization of target temperatures and vacation modes.
   * Integration of outdoor weather data and condition icons (`weather.forecast_home`).
   * Remote monitoring and automations via Home Assistant dashboards.
+
 ---
+
 ## 🔌 Wiring & Hardware Connections
 
 The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physical pin allocations and peripheral connections used in this project:
@@ -50,7 +57,9 @@ The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physica
 > * Connecting the relay output to your heating system involves working with **230V mains voltage**. 
 > * Always disconnect both the central heating boiler (gas/electric heating system) and the thermostat power supply from the mains before wiring any physical components. 
 > * If you are unsure or lack qualifications, always consult a certified electrician.
+
 ---
+
 ## 🚀 Installation & Setup Guide
 
 Follow these steps to set up, configure, and flash the firmware onto your JC3248W535 display board using ESPHome.
@@ -94,7 +103,9 @@ Connect your ESP32-S3 display board to your computer via USB and run the compila
 esphome run termostat-esphome.yaml
 ```
 ##### (Note: For subsequent updates once the device is mounted on the wall and connected to your local network, ESPHome will automatically perform Over-The-Air (OTA) updates.)
+
 ---
+
 ## 📱 Features & Touch Interface Guide
 
 The thermostat features a modern, responsive 3.5" IPS capacitive touch interface powered by the `AXS15231` controller and built using ESPHome's custom display rendering engine.
@@ -118,7 +129,9 @@ Tapping the gear icon gives you direct access to configure critical parameters l
 * **Vacation Temperature (Temp. Vacanță):** Set the dedicated eco-temperature target used when vacation mode is active (adjustable from 5.0°C to 20.0°C).
 * **Display Brightness (Luminozitate):** Adjust backlight PWM level from 10% to 100%.
 * **Outdoor Temperature Display:** Enable or disable the outdoor temperature and weather icon overlay on the main screen.
+
 ---
+
 ## 🛠️ Troubleshooting
 
 If you encounter issues during setup, compilation, or runtime, check the common solutions below:
@@ -143,7 +156,9 @@ If you encounter issues during setup, compilation, or runtime, check the common 
 * **Solution:**
   * Double-check your `wifi_ssid` and `wifi_password` in `secrets.yaml`.
   * If the device cannot reach your primary network, it will start its own fallback Access Point (`ap_ssid`) allowing you to connect directly and check logs or update credentials via OTA.
+
 ---
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](../../issues) if you want to contribute.
@@ -159,6 +174,7 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 ## 📄 License
 
 Distributed under the **MIT License**. See `LICENSE` file for more information.
+
 ---
 
 
