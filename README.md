@@ -155,8 +155,6 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 5. Open a Pull Request
 
 ---
-
----
 <div align="center">
 
 > *"Built with passion for makers, DIY enthusiasts, and smart home tinkerers."*
@@ -165,6 +163,7 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 </div>
 ---
+
 ## 📄 License
 
 Distributed under the **MIT License**. See `LICENSE` file for more information.
