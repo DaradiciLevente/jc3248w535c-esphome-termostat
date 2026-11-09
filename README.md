@@ -93,5 +93,5 @@ Connect your ESP32-S3 display board to your computer via USB and run the compila
 ```bash
 esphome run termostat-esphome.yaml
 ```
-(Note: For subsequent updates once the device is mounted on the wall and connected to your local network, ESPHome will automatically perform Over-The-Air (OTA) updates.)
+##### (Note: For subsequent updates once the device is mounted on the wall and connected to your local network, ESPHome will automatically perform Over-The-Air (OTA) updates.)
 ---
