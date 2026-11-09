@@ -76,7 +76,7 @@ api_key: "Your_Encryption_Key_Base64"
 > **Generating Encryption Keys:**
 > If you need to generate a secure 32-character base64 encryption key for the `api_key` in your `secrets.yaml`, you can run the following command in your terminal using ESPHome:
 > ```bash
-> esphome crypto generate-key
+> python -c "import base64, os; print(base64.b64encode(os.urandom(32)).decode())"
 > ```
 > This will output a secure key that you can copy and paste directly into your secrets file.
 > 
