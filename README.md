@@ -121,7 +121,7 @@ Below is a preview of the main dashboard and the settings menu running on the JC
 
 | Main Dashboard | Settings Menu |
 | :---: | :---: |
-| ![Main Dashboard](images/main.jpg) | ![Settings Menu](images/settings.jpg) |
+| ![Main Dashboard](images/main2.jpg) | ![Settings Menu](images/settings.jpg) |
 
 ### Video Demonstration
 Watch the thermostat in action, including touch navigation and the animated heating flame effect:
