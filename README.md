@@ -37,7 +37,7 @@ The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physica
 
 | Component | Pin / Interface | Description |
 | :--- | :--- | :--- |
-| **Display Board** | `JC3248W535` | 3.5" IPS Capacitive Touch Display (MIPI SPI) |
+| **Display Board** | `JC3248W535C` | 3.5" IPS Capacitive Touch Display (MIPI SPI) |
 | **Touch Controller** | `AXS15231` | Integrated capacitive touch interface |
 | **Backlight PWM** | `GPIO 1` | Backlight brightness control via LEDC |
 | **DS18B20 Sensor** | `GPIO 17` | 1-Wire data line for room temperature measurement (requires 4.7kΩ pull-up resistor) |
