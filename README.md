@@ -119,3 +119,28 @@ Tapping the gear icon gives you direct access to configure critical parameters l
 * **Display Brightness (Luminozitate):** Adjust backlight PWM level from 10% to 100%.
 * **Outdoor Temperature Display:** Enable or disable the outdoor temperature and weather icon overlay on the main screen.
 ---
+## 🛠️ Troubleshooting
+
+If you encounter issues during setup, compilation, or runtime, check the common solutions below:
+
+### 1. DS18B20 Temperature Sensor reads `85.0°C` or `--.-°C`
+* **Cause:** A reading of `85.0°C` is the power-on reset default value of the DS18B20 chip, indicating a communication failure or incorrect wiring. 
+* **Solution:** 
+  * Check the wiring on `GPIO 17`.
+  * Ensure a **4.7kΩ pull-up resistor** is properly connected between the Data line and VCC (3.3V).
+  * Verify that the sensor is receiving stable 3.3V power.
+  * The firmware includes built-in filters to automatically discard `85.0°C` and out-of-range values, but proper wiring is essential.
+
+### 2. Display Remains Black or Touch Is Unresponsive
+* **Cause:** Incorrect pin definitions or SPI/MIPI configuration mismatch.
+* **Solution:**
+  * Verify that your hardware board is strictly the **JC3248W535C** (ESP32-S3 model with MIPI SPI display and `AXS15231` touch controller).
+  * Ensure the SPI pins (`CLK: 47`, Data: `[21, 48, 40, 39]`) and I2C pins (`SDA: 4`, `SCL: 8`) match your physical PCB revision.
+  * Check the serial logs via USB (`esphome logs termostat-esphome.yaml`) to inspect potential boot loops or driver errors.
+
+### 3. Wi-Fi Connection Failures on Boot
+* **Cause:** Incorrect credentials in `secrets.yaml` or weak signal strength.
+* **Solution:**
+  * Double-check your `wifi_ssid` and `wifi_password` in `secrets.yaml`.
+  * If the device cannot reach your primary network, it will start its own fallback Access Point (`ap_ssid`) allowing you to connect directly and check logs or update credentials via OTA.
+---
