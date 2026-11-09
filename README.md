@@ -50,3 +50,14 @@ The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physica
 > * Connecting the relay output to your heating system involves working with **230V mains voltage**. 
 > * Always disconnect both the central heating boiler (gas/electric heating system) and the thermostat power supply from the mains before wiring any physical components. 
 > * If you are unsure or lack qualifications, always consult a certified electrician.
+---
+## 🚀 Installation & Setup Guide
+
+Follow these steps to set up, configure, and flash the firmware onto your JC3248W535 display board using ESPHome.
+
+### Step 1: Clone or Download the Repository
+Clone this repository or download the source files into your local ESPHome configuration directory:
+```bash
+git clone [https://github.com/YourUsername/jc3248w535c-esphome-termostat.git](https://github.com/YourUsername/jc3248w535c-esphome-termostat.git)
+
+---
