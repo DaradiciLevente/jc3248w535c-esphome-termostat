@@ -72,7 +72,14 @@ api_password: "Your_ESPHome_API_Password"
 ota_password: "Your_OTA_Password"
 api_key: "Your_Encryption_Key_Base64"
 ```
-
+> [!TIP]
+> **Generating Encryption Keys:**
+> If you need to generate a secure 32-character base64 encryption key for the `api_key` in your `secrets.yaml`, you can run the following command in your terminal using ESPHome:
+> ```bash
+> esphome crypto generate-key
+> ```
+> This will output a secure key that you can copy and paste directly into your secrets file.
+> 
 ### Step 3: Update Sensor Entities (Substitutions)
 Open the YAML configuration file and update the top substitution variables to match your Home Assistant entity IDs:
 ```bash
@@ -87,3 +94,4 @@ Connect your ESP32-S3 display board to your computer via USB and run the compila
 esphome run termostat-esphome.yaml
 ```
 (Note: For subsequent updates once the device is mounted on the wall and connected to your local network, ESPHome will automatically perform Over-The-Air (OTA) updates.)
+---
