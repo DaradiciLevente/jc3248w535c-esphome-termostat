@@ -1,0 +1,1035 @@
+esphome:
+  name: termostat-esphome
+  platformio_options:
+    upload_speed: 921600
+    board_build.flash_mode: dio
+    board_build.f_flash: 80000000L
+  on_boot:
+    - priority: 600
+      then:
+        - lambda: |-
+            if (id(luminozitate) > 100) id(luminozitate) = 100;
+            if (id(luminozitate) < 10) id(luminozitate) = 10;
+            id(gpio_backlight_pwm).set_level(id(luminozitate) / 100.0f);
+
+            if (isnan(id(target_temp))) id(target_temp) = 23.0f;
+            if (id(target_temp) > 28.0f) id(target_temp) = 28.0f;
+            if (id(target_temp) < 5.0f) id(target_temp) = 5.0f;
+
+            if (isnan(id(temp_vacanta)) || id(temp_vacanta) < 5.0f || id(temp_vacanta) > 20.0f) id(temp_vacanta) = 15.0f;
+            if (isnan(id(hysteresis)) || id(hysteresis) < 0.1f || id(hysteresis) > 2.0f) id(hysteresis) = 0.3f;
+            if (id(min_time_sec) < 0 || id(min_time_sec) > 600) id(min_time_sec) = 180;
+
+            if (isnan(id(offset_salvat)) || id(offset_salvat) < -5.0f || id(offset_salvat) > 5.0f) id(offset_salvat) = 0.0f;
+            id(offset_temp) = id(offset_salvat);
+
+            id(last_heating_change) = millis();
+
+            ESP_LOGI("boot", "Sistem pornit. Temp tinta din memorie: %.2f°C, luminozitate: %d%%", id(target_temp), id(luminozitate));
+    - priority: -100
+      then:
+        - lambda: |-
+            id(luminozitate_nr).publish_state(id(luminozitate));
+            id(offset_nr).publish_state(id(offset_temp));
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+    advanced:
+      compiler_optimization: SIZE
+    sdkconfig_options:
+      CONFIG_ESP32S3_DATA_CACHE_64KB: y
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: y
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
+
+psram:
+  mode: octal
+  speed: 40MHz
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+  reboot_timeout: 0s
+  ap:
+    ssid: !secret ap_ssid
+    password: !secret ap_password
+
+captive_portal:
+
+logger:
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+one_wire:
+  - platform: gpio
+    pin: GPIO17
+
+sensor:
+  - platform: dallas_temp
+    name: "Temperatura Cameră"
+    id: temp_ds18b20
+    update_interval: 15s
+    resolution: 12
+    accuracy_decimals: 2
+    filters:
+      - lambda: |-
+          if (x == 85.0f || x < -50.0f) return {};
+          return x;
+      - lambda: 'return x + id(offset_temp);'
+    on_raw_value:
+      then:
+        - lambda: |-
+            if (x != 85.0f && x > -50.0f) id(temp_raw).publish_state(x);
+    on_value:
+      then:
+        - lambda: 'id(last_temp_ms) = millis();'
+
+  - platform: wifi_signal
+    name: "WiFi Signal RSSI"
+    id: wifi_signal_db
+    update_interval: 60s
+
+  - platform: template
+    name: "Temperatura Brută"
+    id: temp_raw
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 2
+    entity_category: diagnostic
+
+binary_sensor:
+  - platform: template
+    name: "Încălzire Activă"
+    device_class: heat
+    lambda: 'return id(heating_active);'
+
+number:
+  - platform: template
+    name: "Luminozitate Display"
+    id: luminozitate_nr
+    icon: mdi:brightness-6
+    unit_of_measurement: "%"
+    min_value: 10
+    max_value: 100
+    step: 1
+    mode: slider
+    optimistic: true
+    restore_value: false
+    set_action:
+      - lambda: |-
+          int v = (int) x;
+          id(gpio_backlight_pwm).set_level(v / 100.0f);
+          id(draft_luminozitate) = v;
+      - script.execute:
+          id: salveaza_luminozitate
+          val: !lambda 'return (int) x;'
+
+  - platform: template
+    name: "Calibrare Temperatură"
+    id: offset_nr
+    icon: mdi:thermometer-plus
+    unit_of_measurement: "°C"
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.1
+    mode: box
+    optimistic: true
+    restore_value: false
+    set_action:
+      - lambda: |-
+          float v = roundf(x * 10.0f) / 10.0f;
+          id(offset_temp) = v;
+          id(draft_offset) = v;
+      - script.execute:
+          id: salveaza_offset
+          val: !lambda 'return roundf(x * 10.0f) / 10.0f;'
+      - lambda: 'id(temp_ds18b20).update();'
+
+script:
+  - id: salveaza_luminozitate
+    mode: restart
+    parameters:
+      val: int
+    then:
+      - delay: 3s
+      - lambda: |-
+          if (id(luminozitate) != val) id(luminozitate) = val;
+
+  - id: salveaza_offset
+    mode: restart
+    parameters:
+      val: float
+    then:
+      - delay: 3s
+      - lambda: |-
+          if (fabsf(id(offset_salvat) - val) > 0.001f) id(offset_salvat) = val;
+
+  # Animație curată bazată pe timp, declanșată din script
+  - id: animatie_schimbare_pagina
+    mode: restart
+    parameters:
+      target_state: bool
+    then:
+      - lambda: |-
+          id(animating) = true;
+          id(anim_target_page) = target_state;
+          id(anim_start_ms) = millis();
+          id(main_display).update();
+
+output:
+  - id: gpio_backlight_pwm
+    platform: ledc
+    pin: 1
+    frequency: 20000 Hz
+  - platform: gpio
+    pin: GPIO18
+    id: releu_output
+
+switch:
+  - platform: output
+    name: "Releu Centrală"
+    id: releu
+    output: releu_output
+    restore_mode: ALWAYS_OFF
+    internal: true
+
+climate:
+  - platform: thermostat
+    id: termostat
+    name: "Termostat Cameră"
+    sensor: temp_ds18b20
+    min_heating_off_time: 0s
+    min_heating_run_time: 0s
+    min_idle_time: 0s
+    visual:
+      min_temperature: 5.0
+      max_temperature: 28.0
+      temperature_step:
+        target_temperature: 0.5
+        current_temperature: 0.01
+    preset:
+      - name: "Manual"
+        default_target_temperature_low: 23.0
+        mode: "heat"
+    default_preset: "Manual"
+    on_boot_restore_from: memory
+    heat_action:
+      - logger.log: "Climate: Heat action (ignorat)"
+    idle_action:
+      - logger.log: "Climate: Idle action (ignorat)"
+    off_mode:
+      - logger.log: "Climate: Off mode"
+
+globals:
+  # =========================================================================
+  # SETĂRI PENTRU ANIMAȚIE (MODIFICĂ AICI DUPĂ PLĂCERE)
+  # =========================================================================
+  - id: anim_duration_ms
+    type: int
+    restore_value: no
+    initial_value: '500' # Durata totală a animației în milisecunde (ex: 1000 = 1 secundă)
+    
+  - id: anim_fps
+    type: int
+    restore_value: no
+    initial_value: '200'  # Numărul țintă de cadre pe secundă / fluiditate (ex: 200 cadre/secundă sau 100 cadre/secundă)
+  # =========================================================================
+
+  - id: target_temp
+    type: float
+    restore_value: yes
+    initial_value: '23.0'
+  - id: mod_vacanta
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+  - id: temp_vacanta
+    type: float
+    restore_value: yes
+    initial_value: '15.0'
+  - id: hysteresis
+    type: float
+    restore_value: yes
+    initial_value: '0.3'
+  - id: min_time_sec
+    type: int
+    restore_value: yes
+    initial_value: '180'
+  - id: unitate_fahrenheit
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+  - id: luminozitate
+    type: int
+    restore_value: yes
+    initial_value: '100'
+  - id: offset_salvat
+    type: float
+    restore_value: yes
+    initial_value: '0.0'
+  - id: offset_temp
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+
+  - id: draft_mod_vacanta
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: draft_temp_vacanta
+    type: float
+    restore_value: no
+    initial_value: '15.0'
+  - id: draft_hysteresis
+    type: float
+    restore_value: no
+    initial_value: '0.3'
+  - id: draft_min_time_sec
+    type: int
+    restore_value: no
+    initial_value: '180'
+  - id: draft_unitate_fahrenheit
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: draft_luminozitate
+    type: int
+    restore_value: no
+    initial_value: '100'
+  - id: draft_offset
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+
+  - id: heating_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: last_heating_change
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: last_temp_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: touch_x
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: touch_y
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: touch_activ
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: pagina_setari
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: animating
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: anim_target_page
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: anim_start_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
+preferences:
+  id: prefs
+  flash_write_interval: 10s
+
+spi:
+  - type: quad
+    clk_pin: 47
+    data_pins: [21, 48, 40, 39]
+
+i2c:
+  - sda: 4
+    scl: 8
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Bucharest
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          float temp = id(temp_ds18b20).state;
+          bool is_off = (id(termostat).mode == CLIMATE_MODE_OFF);
+          float target = id(mod_vacanta) ? id(temp_vacanta) : id(target_temp);
+          bool stale = (uint32_t) (millis() - id(last_temp_ms)) > 180000UL;
+
+          if (millis() < 5000) {
+            auto call = id(termostat).make_call();
+            call.set_target_temperature(target);
+            call.perform();
+          } else {
+            float ha = id(termostat).target_temperature;
+            if (!isnan(ha)) {
+              float lo = 5.0f;
+              float hi = id(mod_vacanta) ? 20.0f : 28.0f;
+              float v = fmaxf(lo, fminf(hi, ha));
+              if (id(mod_vacanta)) {
+                if (fabsf(v - id(temp_vacanta)) > 0.01f) id(temp_vacanta) = v;
+              } else {
+                if (fabsf(v - id(target_temp)) > 0.01f) id(target_temp) = v;
+              }
+              if (fabsf(v - ha) > 0.01f) {
+                auto call = id(termostat).make_call();
+                call.set_target_temperature(v);
+                call.perform();
+              }
+            }
+          }
+
+          if (is_off || isnan(temp) || stale) {
+            if (id(heating_active)) {
+              id(heating_active) = false;
+              id(releu).turn_off();
+              id(last_heating_change) = millis();
+              ESP_LOGW("termostat", "Releu oprit (mod OFF, senzor indisponibil sau blocat)");
+            }
+            return;
+          }
+
+          float diff = target - temp;
+          uint32_t now_ms = millis();
+          uint32_t elapsed_s = (now_ms - id(last_heating_change)) / 1000;
+
+          if (!id(heating_active)) {
+            if (diff > id(hysteresis) && elapsed_s >= (uint32_t) id(min_time_sec)) {
+              id(heating_active) = true;
+              id(last_heating_change) = now_ms;
+              id(releu).turn_on();
+            }
+          } else {
+            if (diff < -id(hysteresis) && elapsed_s >= (uint32_t) id(min_time_sec)) {
+              id(heating_active) = false;
+              id(last_heating_change) = now_ms;
+              id(releu).turn_off();
+            }
+          }
+
+  - interval: 80ms
+    then:
+      - lambda: |-
+          static uint32_t last_draw = 0;
+          uint32_t now = millis();
+          bool anim = (id(heating_active) && !id(pagina_setari) && !id(animating));
+          if (now - last_draw >= (anim ? 80UL : 1000UL) || id(animating)) {
+            last_draw = now;
+            id(main_display).update();
+          }
+
+  # Interval bazat pe FPS-ul setat global sus
+  - interval: 2ms
+    then:
+      - lambda: |-
+          if (id(animating)) {
+            static uint32_t last_anim_frame = 0;
+            uint32_t now = millis();
+            uint32_t target_interval = (id(anim_fps) > 0) ? (1000UL / (uint32_t)id(anim_fps)) : 5UL;
+            if (now - last_anim_frame >= target_interval) {
+              last_anim_frame = now;
+              id(main_display).update();
+            }
+          }
+
+font:
+  - file: "fonts/arial.ttf"
+    id: font_time
+    size: 34
+    glyphs: "0123456789:"
+  - file: "fonts/arial.ttf"
+    id: font_date
+    size: 16
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț0123456789 ,-."
+  - file: "fonts/arial.ttf"
+    id: font_label_small
+    size: 14
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț0123456789 .-°%"
+  - file: "fonts/arial.ttf"
+    id: font_status_big
+    size: 36
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț"
+  - file: "fonts/arial.ttf"
+    id: font_temp_big
+    size: 64
+    glyphs: "0123456789.-°CF"
+  - file: "fonts/arial.ttf"
+    id: font_setari_title
+    size: 28
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț"
+  - file: "fonts/arial.ttf"
+    id: font_setari_label
+    size: 16
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț0123456789 .-°%"
+  - file: "fonts/arial.ttf"
+    id: font_setari_btn
+    size: 20
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzĂÂÎȘȚăâîșț0123456789 .-°%+<>"
+
+display:
+  - id: main_display
+    platform: mipi_spi
+    model: JC3248W535
+    data_rate: 40MHz
+    rotation: 0
+    update_interval: never
+    auto_clear_enabled: true
+
+    lambda: |-
+      auto t = id(sntp_time).now();
+      bool time_ok = t.is_valid();
+
+      Color c_white = Color::WHITE;
+      Color c_gray = Color(150, 150, 150);
+      Color c_dark_gray = Color(50, 50, 50);
+      Color c_orange = Color(255, 140, 70);
+      Color c_blue_cold = Color(100, 150, 220);
+      Color c_green = Color(100, 200, 100);
+      Color c_button_bg = Color(30, 30, 30);
+      Color c_button_border = Color(60, 60, 60);
+      Color c_box_border = Color(100, 100, 100);
+
+      float temp_curenta = id(temp_ds18b20).state;
+      bool is_off = (id(termostat).mode == CLIMATE_MODE_OFF);
+      float effective_target = id(mod_vacanta) ? id(temp_vacanta) : id(target_temp);
+
+      auto temp_display = [&](float temp_c) -> float {
+        return id(unitate_fahrenheit) ? (temp_c * 9.0f / 5.0f + 32.0f) : temp_c;
+      };
+      auto unit_str = [&]() -> const char* {
+        return id(unitate_fahrenheit) ? "F" : "C";
+      };
+
+      auto draw_settings = [&](int start_x) {
+        it.filled_rectangle(start_x, 0, 320, 480, Color::BLACK);
+        it.print(start_x + 160, 15, id(font_setari_title), c_white, TextAlign::TOP_CENTER, "SETĂRI");
+        it.line(start_x + 20, 60, start_x + 300, 60, c_gray);
+        int row_y = 80;
+        int row_h = 40;
+
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Unitate");
+        it.filled_rectangle(start_x + 180, row_y, 120, 30, c_button_bg);
+        it.rectangle(start_x + 180, row_y, 120, 30, c_button_border);
+        it.print(start_x + 240, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, id(draft_unitate_fahrenheit) ? "Fahrenheit" : "Celsius");
+
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Calibrare");
+        {
+          float o_disp = id(draft_unitate_fahrenheit) ? (id(draft_offset) * 9.0f / 5.0f) : id(draft_offset);
+          if (fabsf(o_disp) < 0.005f) o_disp = 0.0f;
+          char buf[16];
+          if (id(draft_unitate_fahrenheit)) {
+            snprintf(buf, sizeof(buf), "%.2f°F", o_disp);
+          } else {
+            snprintf(buf, sizeof(buf), "%.1f°C", o_disp);
+          }
+          it.print(start_x + 160, row_y + 8, id(font_setari_label), c_white, TextAlign::TOP_CENTER, buf);
+        }
+        it.filled_rectangle(start_x + 210, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 210, row_y, 30, 30, c_button_border);
+        it.print(start_x + 225, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "-");
+        it.filled_rectangle(start_x + 250, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 250, row_y, 30, 30, c_button_border);
+        it.print(start_x + 265, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "+");
+
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Histerezis");
+        {
+          float h_disp = id(draft_unitate_fahrenheit) ? (id(draft_hysteresis) * 9.0f / 5.0f) : id(draft_hysteresis);
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%.2f°%s", h_disp, id(draft_unitate_fahrenheit) ? "F" : "C");
+          it.print(start_x + 160, row_y + 8, id(font_setari_label), c_white, TextAlign::TOP_CENTER, buf);
+        }
+        it.filled_rectangle(start_x + 210, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 210, row_y, 30, 30, c_button_border);
+        it.print(start_x + 225, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "-");
+        it.filled_rectangle(start_x + 250, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 250, row_y, 30, 30, c_button_border);
+        it.print(start_x + 265, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "+");
+
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Timp minim");
+        {
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%ds", id(draft_min_time_sec));
+          it.print(start_x + 160, row_y + 8, id(font_setari_label), c_white, TextAlign::TOP_CENTER, buf);
+        }
+        it.filled_rectangle(start_x + 210, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 210, row_y, 30, 30, c_button_border);
+        it.print(start_x + 225, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "-");
+        it.filled_rectangle(start_x + 250, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 250, row_y, 30, 30, c_button_border);
+        it.print(start_x + 265, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "+");
+
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Mod Vacanță");
+        it.filled_rectangle(start_x + 230, row_y, 60, 30, c_button_bg);
+        it.rectangle(start_x + 230, row_y, 60, 30, c_button_border);
+        it.print(start_x + 260, row_y + 15, id(font_setari_btn), id(draft_mod_vacanta) ? c_green : c_gray, TextAlign::CENTER, id(draft_mod_vacanta) ? "ON" : "OFF");
+
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Temp. Vacanță");
+        {
+          float tv_disp = id(draft_unitate_fahrenheit) ? (id(draft_temp_vacanta) * 9.0f / 5.0f + 32.0f) : id(draft_temp_vacanta);
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%.1f°%s", tv_disp, id(draft_unitate_fahrenheit) ? "F" : "C");
+          it.print(start_x + 160, row_y + 8, id(font_setari_label), c_white, TextAlign::TOP_CENTER, buf);
+        }
+        it.filled_rectangle(start_x + 210, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 210, row_y, 30, 30, c_button_border);
+        it.print(start_x + 225, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "-");
+        it.filled_rectangle(start_x + 250, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 250, row_y, 30, 30, c_button_border);
+        it.print(start_x + 265, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "+");
+
+        row_y += row_h;
+        it.print(start_x + 20, row_y + 10, id(font_setari_label), c_gray, TextAlign::TOP_LEFT, "Luminozitate");
+        {
+          char buf[16];
+          snprintf(buf, sizeof(buf), "%d%%", id(draft_luminozitate));
+          it.print(start_x + 160, row_y + 8, id(font_setari_label), c_white, TextAlign::TOP_CENTER, buf);
+        }
+        it.filled_rectangle(start_x + 210, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 210, row_y, 30, 30, c_button_border);
+        it.print(start_x + 225, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "-");
+        it.filled_rectangle(start_x + 250, row_y, 30, 30, c_button_bg);
+        it.rectangle(start_x + 250, row_y, 30, 30, c_button_border);
+        it.print(start_x + 265, row_y + 15, id(font_setari_btn), c_white, TextAlign::CENTER, "+");
+
+        int btn_y = 400;
+        int btn_h = 50;
+        it.filled_rectangle(start_x + 20, btn_y, 120, btn_h, c_button_bg);
+        it.rectangle(start_x + 20, btn_y, 120, btn_h, c_button_border);
+        it.print(start_x + 80, btn_y + btn_h / 2, id(font_setari_btn), c_gray, TextAlign::CENTER, "ÎNAPOI");
+        it.filled_rectangle(start_x + 180, btn_y, 120, btn_h, c_button_bg);
+        it.rectangle(start_x + 180, btn_y, 120, btn_h, c_button_border);
+        it.print(start_x + 240, btn_y + btn_h / 2, id(font_setari_btn), c_white, TextAlign::CENTER, "SALVEAZĂ");
+      };
+
+      auto draw_main = [&](int start_x) {
+        it.filled_rectangle(start_x, 0, 320, 480, Color::BLACK);
+        if (time_ok) {
+          char time_buf[16];
+          t.strftime(time_buf, sizeof(time_buf), "%H:%M");
+          const char* zile[] = {"Dum", "Lun", "Mar", "Mie", "Joi", "Vin", "Sam"};
+          const char* luni[] = {"Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Noi", "Dec"};
+          int zi_index = (t.day_of_week + 6) % 7;
+          int luna_index = (t.month >= 1 && t.month <= 12) ? (t.month - 1) : 0;
+          char date_buf[32];
+          snprintf(date_buf, sizeof(date_buf), "%s, %d %s", zile[zi_index], t.day_of_month, luni[luna_index]);
+          it.print(start_x + 10, 15, id(font_time), c_white, TextAlign::TOP_LEFT, time_buf);
+          it.print(start_x + 10, 55, id(font_date), c_gray, TextAlign::TOP_LEFT, date_buf);
+        } else {
+          it.print(start_x + 10, 25, id(font_label_small), c_gray, TextAlign::TOP_LEFT, "Sincronizare ora...");
+        }
+
+        int wifi_start_x = start_x + 245;
+        int wifi_base_y = 45;
+        it.filled_rectangle(wifi_start_x, wifi_base_y - 4, 3, 4, c_dark_gray);
+        it.filled_rectangle(wifi_start_x + 5, wifi_base_y - 8, 3, 8, c_dark_gray);
+        it.filled_rectangle(wifi_start_x + 10, wifi_base_y - 12, 3, 12, c_dark_gray);
+        it.filled_rectangle(wifi_start_x + 15, wifi_base_y - 16, 3, 16, c_dark_gray);
+
+        float rssi = -70.0f;
+        if (id(wifi_signal_db).has_state() && !isnan(id(wifi_signal_db).state)) {
+          rssi = id(wifi_signal_db).state;
+        }
+        int bare_active = 0;
+        if (rssi > -55) bare_active = 4;
+        else if (rssi > -65) bare_active = 3;
+        else if (rssi > -75) bare_active = 2;
+        else if (rssi > -85) bare_active = 1;
+
+        if (bare_active >= 1) it.filled_rectangle(wifi_start_x, wifi_base_y - 4, 3, 4, c_white);
+        if (bare_active >= 2) it.filled_rectangle(wifi_start_x + 5, wifi_base_y - 8, 3, 8, c_white);
+        if (bare_active >= 3) it.filled_rectangle(wifi_start_x + 10, wifi_base_y - 12, 3, 12, c_white);
+        if (bare_active >= 4) it.filled_rectangle(wifi_start_x + 15, wifi_base_y - 16, 3, 16, c_white);
+
+        {
+          int gear_x = start_x + 298;
+          int gear_y = 38;
+          bool g_pressed = id(touch_activ) && id(touch_x) > 270 && id(touch_x) < 320 && id(touch_y) > 10 && id(touch_y) < 66;
+          Color g_color = g_pressed ? c_orange : c_white;
+          Color g_back = g_pressed ? Color(40, 40, 45) : Color::BLACK;
+          if (g_pressed) it.filled_circle(gear_x, gear_y, 18, g_back);
+          it.filled_circle(gear_x, gear_y, 9, g_color);
+          for (int i = 0; i < 8; i++) {
+            float ang = i * 0.7853982f;
+            float dx = cosf(ang);
+            float dy = sinf(ang);
+            float nx = -dy;
+            float ny = dx;
+            float r_base = 6.5f, r_tip = 12.0f;
+            float w_base = 3.4f, w_tip = 2.2f;
+            int x1 = gear_x + (int) roundf(dx * r_base + nx * w_base);
+            int y1 = gear_y + (int) roundf(dy * r_base + ny * w_base);
+            int x2 = gear_x + (int) roundf(dx * r_base - nx * w_base);
+            int y2 = gear_y + (int) roundf(dy * r_base - ny * w_base);
+            int x3 = gear_x + (int) roundf(dx * r_tip - nx * w_tip);
+            int y3 = gear_y + (int) roundf(dy * r_tip - ny * w_tip);
+            int x4 = gear_x + (int) roundf(dx * r_tip + nx * w_tip);
+            int y4 = gear_y + (int) roundf(dy * r_tip + ny * w_tip);
+            it.filled_triangle(x1, y1, x2, y2, x3, y3, g_color);
+            it.filled_triangle(x1, y1, x3, y3, x4, y4, g_color);
+          }
+          it.filled_circle(gear_x, gear_y, 4, g_back);
+        }
+
+        it.line(start_x + 40, 85, start_x + 280, 85, Color(40, 40, 40));
+
+        it.print(start_x + 160, 100, id(font_label_small), c_gray, TextAlign::TOP_CENTER, "TEMPERATURA CURENTĂ");
+        char temp_curr_buf[16];
+        if (!isnan(temp_curenta)) {
+          snprintf(temp_curr_buf, sizeof(temp_curr_buf), "%.1f°%s", temp_display(temp_curenta), unit_str());
+        } else {
+          snprintf(temp_curr_buf, sizeof(temp_curr_buf), "--.-°%s", unit_str());
+        }
+        it.print(start_x + 160, 120, id(font_temp_big), c_orange, TextAlign::TOP_CENTER, temp_curr_buf);
+
+        int bx = start_x + 30, by = 205, bw = 260, bh = 100, r = 10;
+        it.line(bx + r, by, bx + bw - r, by, c_box_border);
+        it.line(bx + r, by + bh, bx + bw - r, by + bh, c_box_border);
+        it.line(bx, by + r, bx, by + bh - r, c_box_border);
+        it.line(bx + bw, by + r, bx + bw, by + bh - r, c_box_border);
+        it.line(bx + r, by, bx, by + r, c_box_border);
+        it.line(bx + bw - r, by, bx + bw, by + r, c_box_border);
+        it.line(bx + r, by + bh, bx, by + bh - r, c_box_border);
+        it.line(bx + bw - r, by + bh, bx + bw, by + bh - r, c_box_border);
+
+        char temp_target_buf[16];
+        snprintf(temp_target_buf, sizeof(temp_target_buf), "%.1f°%s", temp_display(effective_target), unit_str());
+        it.print(start_x + 160, 215, id(font_temp_big), c_white, TextAlign::TOP_CENTER, temp_target_buf);
+        it.print(start_x + 160, 315, id(font_label_small), c_gray, TextAlign::TOP_CENTER, id(mod_vacanta) ? "TEMP. VACANȚĂ" : "TEMPERATURA SETATĂ");
+
+        if (is_off) {
+          it.print(start_x + 160, 332, id(font_status_big), c_blue_cold, TextAlign::TOP_CENTER, "OPRIT");
+          int cx = start_x + 160;
+          int cy = 403;
+          int rad = 26;
+          Color c_red = Color(220, 20, 20);
+          it.filled_circle(cx, cy, rad + 2, c_white);
+          it.filled_circle(cx, cy, rad, c_red);
+          it.filled_rectangle(cx - rad + 5, cy - 6, (rad * 2) - 10, 12, c_white);
+          it.print(start_x + 160, 456, id(font_label_small), c_gray, TextAlign::TOP_CENTER, "TERMOSTAT OPRIT");
+        } else if (id(heating_active)) {
+          it.print(start_x + 160, 332, id(font_status_big), c_orange, TextAlign::TOP_CENTER, "ÎNCĂLZIRE");
+          int cx = start_x + 160;
+          int base_y = 420;
+          float t1 = millis() / 120.0f;
+          float t2 = millis() / 80.0f;
+          float t3 = millis() / 200.0f;
+
+          int sway = (int)(sinf(t3) * 4.0f);
+          int h_outer = 35 + (int)(sinf(t1) * 5.0f) + (int)(cosf(t2 * 1.5f) * 2.0f);
+          int w_outer = 13 + (int)(cosf(t1) * 2.0f);
+
+          Color c_dark_red = Color(180, 30, 0);
+          it.filled_circle(cx + sway/2, base_y - 12, w_outer + 5, c_dark_red);
+          it.filled_triangle(cx + sway, base_y - h_outer - 8, cx - w_outer - 6, base_y - 10, cx + w_outer + 6, base_y - 10, c_dark_red);
+
+          int h_mid = h_outer - 8;
+          int w_mid = w_outer - 3;
+          Color c_orange_col = Color(255, 110, 0);
+          it.filled_circle(cx + sway/3, base_y - 14, w_mid + 3, c_orange_col);
+          it.filled_triangle(cx + sway*0.8f, base_y - h_mid - 8, cx - w_mid - 3, base_y - 11, cx + w_mid + 3, base_y - 11, c_orange_col);
+
+          int h_core = h_mid - 8;
+          int w_core = w_mid - 3;
+          Color c_bright = Color(255, 180, 20);
+          it.filled_circle(cx, base_y - 16, w_core + 2, c_bright);
+          it.filled_triangle(cx + sway*0.5f, base_y - h_core - 10, cx - w_core, base_y - 13, cx + w_core, base_y - 13, c_bright);
+
+          int h_tip = h_core - 6;
+          Color c_yellow = Color(255, 240, 100);
+          Color c_core_white = Color(255, 255, 220);
+          it.filled_triangle(cx, base_y - h_tip - 13, cx - 2, base_y - 15, cx + 2, base_y - 15, c_yellow);
+          it.filled_circle(cx, base_y - 17, 2, c_core_white);
+
+          it.print(start_x + 160, 456, id(font_label_small), c_gray, TextAlign::TOP_CENTER, "CENTRALĂ PORNITĂ");
+        } else {
+          it.print(start_x + 160, 332, id(font_status_big), c_blue_cold, TextAlign::TOP_CENTER, "REPAUS");
+          int cx = start_x + 160;
+          int cy = 403;
+          Color c_idle = Color(80, 130, 180);
+          Color c_dot = Color(120, 170, 220);
+          it.circle(cx, cy, 26, c_idle);
+          it.circle(cx, cy, 25, c_idle);
+          it.filled_circle(cx, cy, 6, c_dot);
+          it.line(cx - 12, cy, cx - 5, cy, c_idle);
+          it.line(cx + 5, cy, cx + 12, cy, c_idle);
+
+          it.print(start_x + 160, 456, id(font_label_small), c_gray, TextAlign::TOP_CENTER, "CENTRALĂ OPRITĂ");
+        }
+
+        int btn_w = 60;
+        int btn_h = 80;
+        int btn_y = 395;
+
+        if (!id(mod_vacanta)) {
+          auto rrect = [&](int rx, int ry, int rw, int rh, int rr, Color rc) {
+            it.filled_rectangle(rx + rr, ry, rw - 2 * rr, rh, rc);
+            it.filled_rectangle(rx, ry + rr, rw, rh - 2 * rr, rc);
+            it.filled_circle(rx + rr, ry + rr, rr, rc);
+            it.filled_circle(rx + rw - rr - 1, ry + rr, rr, rc);
+            it.filled_circle(rx + rr, ry + rh - rr - 1, rr, rc);
+            it.filled_circle(rx + rw - rr - 1, ry + rh - rr - 1, rr, rc);
+          };
+          auto draw_btn = [&](int x0, bool is_plus, bool pressed) {
+            Color accent = is_plus ? c_orange : c_blue_cold;
+            int body_h = btn_h - 3;
+            int body_y = pressed ? btn_y + 3 : btn_y;
+            if (!pressed) rrect(x0, btn_y + 3, btn_w, body_h, 12, Color(12, 12, 12));
+            rrect(x0, body_y, btn_w, body_h, 12, pressed ? accent : Color(95, 95, 105));
+            rrect(x0 + 2, body_y + 2, btn_w - 4, body_h - 4, 10, pressed ? accent : Color(48, 48, 54));
+            Color sym = pressed ? Color(25, 25, 25) : accent;
+            int mid_x = x0 + btn_w / 2;
+            int mid_y = body_y + body_h / 2;
+            it.filled_rectangle(mid_x - 13, mid_y - 3, 26, 6, sym);
+            if (is_plus) it.filled_rectangle(mid_x - 3, mid_y - 13, 6, 26, sym);
+          };
+          bool t_on = id(touch_activ);
+          int tx = id(touch_x);
+          int ty = id(touch_y);
+          bool in_y = (ty > 395 && ty < 475);
+          draw_btn(start_x + 10, false, t_on && in_y && tx > (10 + start_x) && tx < (70 + start_x));
+          draw_btn(start_x + 250, true, t_on && in_y && tx > (250 + start_x) && tx < (310 + start_x));
+        } else {
+          it.print(start_x + 160, 436, id(font_label_small), c_green, TextAlign::TOP_CENTER, "MOD VACANȚĂ");
+        }
+      };
+
+      if (id(animating)) {
+        uint32_t elapsed = millis() - id(anim_start_ms);
+        float duration = (float)id(anim_duration_ms);
+        
+        if (elapsed >= duration) {
+          id(animating) = false;
+          id(pagina_setari) = id(anim_target_page);
+          elapsed = duration;
+        }
+
+        float t_val = (float)elapsed / duration;
+        float p = 0.5f - 0.5f * cosf(t_val * 3.14159265f);
+        int current_offset = (int)(p * 320.0f);
+
+        if (id(anim_target_page)) {
+          draw_main(-current_offset);
+          draw_settings(320 - current_offset);
+        } else {
+          draw_settings(current_offset);
+          draw_main(-320 + current_offset);
+        }
+      } else {
+        if (id(pagina_setari)) {
+          draw_settings(0);
+        } else {
+          draw_main(0);
+        }
+      }
+
+touchscreen:
+  - id: main_touchscreen
+    platform: axs15231
+    on_touch:
+      then:
+        - lambda: |-
+            id(touch_x) = touch.x;
+            id(touch_y) = touch.y;
+            if (!id(touch_activ) && !id(animating)) {
+              id(touch_activ) = true;
+              id(main_display).update();
+            }
+
+    on_release:
+      then:
+        - lambda: |-
+            int x = id(touch_x);
+            int y = id(touch_y);
+            id(touch_activ) = false;
+
+            if (id(animating)) return;
+
+            if (id(pagina_setari)) {
+              int row_y = 80;
+              int row_h = 40;
+
+              if (x > 10 && x < 150 && y > 390 && y < 460) {
+                id(animatie_schimbare_pagina).execute(false);
+                return;
+              }
+              if (x > 170 && x < 310 && y > 390 && y < 460) {
+                id(hysteresis) = id(draft_hysteresis);
+                id(min_time_sec) = id(draft_min_time_sec);
+                id(mod_vacanta) = id(draft_mod_vacanta);
+                id(temp_vacanta) = id(draft_temp_vacanta);
+                id(unitate_fahrenheit) = id(draft_unitate_fahrenheit);
+                id(salveaza_luminozitate).stop();
+                id(luminozitate) = id(draft_luminozitate);
+                id(gpio_backlight_pwm).set_level(id(luminozitate) / 100.0f);
+                id(luminozitate_nr).publish_state(id(luminozitate));
+
+                {
+                  bool offset_changed = fabsf(id(offset_temp) - id(draft_offset)) > 0.001f;
+                  id(salveaza_offset).stop();
+                  id(offset_temp) = id(draft_offset);
+                  id(offset_salvat) = id(draft_offset);
+                  id(offset_nr).publish_state(id(offset_temp));
+                  if (offset_changed) id(temp_ds18b20).update();
+                }
+
+                {
+                   float val_to_send = id(mod_vacanta) ? id(temp_vacanta) : id(target_temp);
+                   auto call = id(termostat).make_call();
+                   call.set_target_temperature(val_to_send);
+                   call.perform();
+                }
+                
+                id(animatie_schimbare_pagina).execute(false);
+                return;
+              }
+
+              if (y > row_y && y < row_y + 30 && x > 180 && x < 300) {
+                id(draft_unitate_fahrenheit) = !id(draft_unitate_fahrenheit);
+              }
+
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30) {
+                if (x > 210 && x < 240) {
+                  id(draft_offset) -= 0.1f;
+                  if (id(draft_offset) < -5.0f) id(draft_offset) = -5.0f;
+                  id(draft_offset) = roundf(id(draft_offset) * 10.0f) / 10.0f;
+                } else if (x > 250 && x < 280) {
+                  id(draft_offset) += 0.1f;
+                  if (id(draft_offset) > 5.0f) id(draft_offset) = 5.0f;
+                  id(draft_offset) = roundf(id(draft_offset) * 10.0f) / 10.0f;
+                }
+              }
+
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30) {
+                if (x > 210 && x < 240) {
+                  id(draft_hysteresis) -= 0.1f;
+                  if (id(draft_hysteresis) < 0.1f) id(draft_hysteresis) = 0.1f;
+                  id(draft_hysteresis) = roundf(id(draft_hysteresis) * 10.0f) / 10.0f;
+                } else if (x > 250 && x < 280) {
+                  id(draft_hysteresis) += 0.1f;
+                  if (id(draft_hysteresis) > 2.0f) id(draft_hysteresis) = 2.0f;
+                  id(draft_hysteresis) = roundf(id(draft_hysteresis) * 10.0f) / 10.0f;
+                }
+              }
+
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30) {
+                if (x > 210 && x < 240) {
+                  id(draft_min_time_sec) -= 30;
+                  if (id(draft_min_time_sec) < 0) id(draft_min_time_sec) = 0;
+                } else if (x > 250 && x < 280) {
+                  id(draft_min_time_sec) += 30;
+                  if (id(draft_min_time_sec) > 600) id(draft_min_time_sec) = 600;
+                }
+              }
+
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30 && x > 230 && x < 290) {
+                id(draft_mod_vacanta) = !id(draft_mod_vacanta);
+              }
+
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30) {
+                if (x > 210 && x < 240) {
+                  id(draft_temp_vacanta) -= 0.5f;
+                  if (id(draft_temp_vacanta) < 5.0f) id(draft_temp_vacanta) = 5.0f;
+                  id(draft_temp_vacanta) = roundf(id(draft_temp_vacanta) * 10.0f) / 10.0f;
+                } else if (x > 250 && x < 280) {
+                  id(draft_temp_vacanta) += 0.5f;
+                  if (id(draft_temp_vacanta) > 20.0f) id(draft_temp_vacanta) = 20.0f;
+                  id(draft_temp_vacanta) = roundf(id(draft_temp_vacanta) * 10.0f) / 10.0f;
+                }
+              }
+
+              row_y += row_h;
+              if (y > row_y && y < row_y + 30) {
+                if (x > 210 && x < 240) {
+                  id(draft_luminozitate) -= 10;
+                  if (id(draft_luminozitate) < 10) id(draft_luminozitate) = 10;
+                  id(gpio_backlight_pwm).set_level(id(draft_luminozitate) / 100.0f);
+                } else if (x > 250 && x < 280) {
+                  id(draft_luminozitate) += 10;
+                  if (id(draft_luminozitate) > 100) id(draft_luminozitate) = 100;
+                  id(gpio_backlight_pwm).set_level(id(draft_luminozitate) / 100.0f);
+                }
+              }
+
+              return;
+            }
+
+            if (x > 270 && x < 320 && y > 10 && y < 66) {
+              id(draft_hysteresis) = id(hysteresis);
+              id(draft_min_time_sec) = id(min_time_sec);
+              id(draft_mod_vacanta) = id(mod_vacanta);
+              id(draft_temp_vacanta) = id(temp_vacanta);
+              id(draft_unitate_fahrenheit) = id(unitate_fahrenheit);
+              id(draft_luminozitate) = id(luminozitate_nr).has_state() ? (int) id(luminozitate_nr).state : id(luminozitate);
+              id(draft_offset) = id(offset_temp);
+              
+              id(animatie_schimbare_pagina).execute(true);
+              return;
+            }
+
+            if (id(mod_vacanta)) return;
+
+            float lo = 5.0f;
+            float hi = id(mod_vacanta) ? 20.0f : 28.0f;
+            float actual_target = id(mod_vacanta) ? id(temp_vacanta) : id(target_temp);
+            if (x > 10 && x < 70 && y > 395 && y < 475) {
+              float new_value = actual_target - 0.5f;
+              if (new_value < lo) new_value = lo;
+              if (id(mod_vacanta)) {
+                id(temp_vacanta) = new_value;
+              } else {
+                id(target_temp) = new_value;
+              }
+              auto call = id(termostat).make_call();
+              call.set_target_temperature(new_value);
+              call.perform();
+            }
+            else if (x > 250 && x < 310 && y > 395 && y < 475) {
+              float new_value = actual_target + 0.5f;
+              if (new_value > hi) new_value = hi;
+              if (id(mod_vacanta)) {
+                id(temp_vacanta) = new_value;
+              } else {
+                id(target_temp) = new_value;
+              }
+              auto call = id(termostat).make_call();
+              call.set_target_temperature(new_value);
+              call.perform();
+            }
+        - component.update: main_display
