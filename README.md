@@ -4,6 +4,12 @@ An advanced, standalone-capable ESPHome thermostat featuring a 3.5" IPS touch di
 
 ---
 
+> [!IMPORTANT]
+> **🚧 WORK IN PROGRESS:** 
+> This project is currently under active development. Features are continuously being improved, and this documentation is not yet final. Expect updates, adjustments, and new capabilities as the project evolves!
+
+---
+
 > [!WARNING]
 >  **DISCLAIMER:** 
 > * This project is a DIY (Do It Yourself) hobby endeavor. It involves working with sensitive electronic components, high and dangerous electrical voltages (230V), and gas heating systems.
