@@ -106,6 +106,26 @@ esphome run termostat-esphome.yaml
 
 ---
 
+---
+
+## 📸 Screenshots & Video Demo
+
+### Touch Interface
+Below is a preview of the main dashboard and the settings menu running on the JC3248W535C display board:
+
+| Main Dashboard | Settings Menu |
+| :---: | :---: |
+| ![Main Dashboard](images/main_screen.png) | ![Settings Menu](images/settings_screen.png) |
+
+### Video Demonstration
+Watch the thermostat in action, including touch navigation and the animated heating flame effect:
+
+[![Watch the video](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
+
+*(Click the thumbnail above to watch the full video on YouTube)*
+
+---
+
 ## 📱 Features & Touch Interface Guide
 
 The thermostat features a modern, responsive 3.5" IPS capacitive touch interface powered by the `AXS15231` controller and built using ESPHome's custom display rendering engine.
