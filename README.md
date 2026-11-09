@@ -156,6 +156,15 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ---
 
+---
+<div align="center">
+
+> *"Built with passion for makers, DIY enthusiasts, and smart home tinkerers."*
+> 
+> **Crafted by Levente Daradici** 🚀
+
+</div>
+---
 ## 📄 License
 
 Distributed under the **MIT License**. See `LICENSE` file for more information.
