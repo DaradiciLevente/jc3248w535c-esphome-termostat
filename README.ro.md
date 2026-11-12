@@ -26,7 +26,7 @@
 
 ---
 
-> [!WARNING]
+> [!ATENȚIE !]
 > **Tensiune de rețea și sistem de încălzire pe gaz. Citește [declinarea responsabilității](#️-declinarea-responsabilității-și-siguranță) înainte de a construi orice.**
 
 ## 📑 Cuprins
@@ -50,13 +50,13 @@
 | | Funcționalitate | Detalii |
 | :-: | :--- | :--- |
 | 🧠 | **Buclă de control locală** | Citește DS18B20, evaluează histerezisul și comandă releul direct de pe dispozitiv. Fără cloud, fără server. |
-| 📡 | **Funcționează offline** | Wi-Fi-ul sau Home Assistant nu mai funcționează? Termostatul continuă să încălzească și poate fi controlat complet de pe ecran. |
+| 📡 | **Funcționează offline** | Wi-Fi-ul sau Home Assistant nu mai funcționează? Termostatul continuă să încălzească și poate fi controlat complet de pe ecranul tactil. |
 | 🏠 | **Pregătit pentru Home Assistant** | API nativ pentru sincronizarea temperaturii țintă, a modului vacanță, a datelor meteo exterioare și pentru dashboard-uri. |
 | 🖐️ | **Interfață tactilă completă** | Ecran principal + meniu de setări, cu tranziții animate și o flacără animată în timpul încălzirii. |
 | 🛡️ | **Protecția centralei** | Histerezis și timpi minimi de pornire/oprire configurabili, pentru a evita ciclurile scurte (short-cycling). |
 | 💾 | **Setări persistente** | Toți parametrii sunt salvați în memoria flash și se păstrează după repornire sau după o pană de curent. |
 | 🌴 | **Mod vacanță** | O singură atingere pentru a trece pe o temperatură economică dedicată. |
-| 🔄 | **Actualizări OTA** | Actualizezi firmware-ul fără fir, după ce dispozitivul a fost montat pe perete. |
+| 🔄 | **Actualizări OTA** | Poți să actualizezi firmware-ul wireless, după ce dispozitivul a fost montat pe perete. |
 
 ---
 
@@ -99,7 +99,7 @@ flowchart LR
 
 [![Vezi videoclipul](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
 
-*Apasă pe miniatură pentru a vedea navigarea tactilă și flacăra animată din timpul încălzirii.*
+*Apasă pe imagine pentru a vedea un scurt demo cu funcționarea termostatului*
 
 </div>
 
@@ -117,13 +117,13 @@ Interfața rulează pe un ecran IPS capacitiv de 3,5" (controler `AXS15231`) și
 | 📶 **Rețea și vreme** | Intensitatea semnalului Wi-Fi, plus temperatura exterioară și pictograma vremii (din Home Assistant) |
 | 🌡️ **Temperatura din cameră** | Afișaj mare, cu valoarea citită de DS18B20, cu offset de calibrare |
 | 🎯 **Temperatura țintă** | Valoarea setată curent (sau cea din modul vacanță) |
-| 🔥 **Starea încălzirii** | `ÎNCĂLZIRE` (încălzire activă, cu flacără animată) · `REPAUS` (în așteptare) · `OPRIT` (oprit) |
+| 🔥 **Starea încălzirii** | `ÎNCĂLZIRE` (încălzire activă, cu flacără animată) · `REPAUS` (în așteptare) · `OPRIT` (termostat oprit) |
 | ➕➖ **Comenzi rapide** | Ajustezi temperatura țintă în pași de **0,5 °C** |
 | ⚙️ **Setări** | Pictograma roată dințată (dreapta sus) deschide meniul de setări |
 
 ### Meniul de setări
 
-Toate valorile sunt salvate în preferințele din flash.
+Toate valorile sunt salvate în memoria flash.
 
 | Setare | Interval / Opțiuni |
 | :--- | :--- |
@@ -174,7 +174,7 @@ Toate valorile sunt salvate în preferințele din flash.
  GND ────────────────── GND (DS18B20)
 ```
 
-> [!CAUTION]
+> [!ATENȚIE]
 > **PERICOL ELECTRIC: tensiune de rețea de 230 V**
 > - Conectarea releului la sistemul de încălzire implică lucrul cu tensiune de rețea.
 > - Deconectează de la rețea **atât** centrala, cât și sursa de alimentare a termostatului, înainte de a atinge orice conexiune.
@@ -202,7 +202,7 @@ cd jc3248w535c-esphome-termostat
 
 ### 2️⃣ Configurează `secrets.yaml`
 
-Creează sau actualizează fișierul `secrets.yaml` în directorul tău de configurare ESPHome:
+Creează și actualizează fișierul `secrets.yaml` în directorul tău de configurare ESPHome:
 
 ```yaml
 wifi_ssid: "Your_WiFi_SSID"
@@ -230,7 +230,7 @@ substitutions:
   sensor_stare_vreme: "weather.forecast_your_home"
 ```
 
-### 4️⃣ Compilează și flashează
+### 4️⃣ Compilează și încarcă firmware-ul
 
 Conectează placa prin USB și rulează:
 
@@ -239,7 +239,7 @@ esphome run termostat-esphome.yaml
 ```
 
 > [!NOTE]
-> După primul flash, odată ce dispozitivul este în rețeaua ta, actualizările ulterioare se fac **prin aer (OTA)**.
+> După primul flash, odată ce dispozitivul este în rețeaua ta, actualizările ulterioare se pot face **prin aer (OTA)**.
 
 ---
 
@@ -300,11 +300,6 @@ Proiectul este în dezvoltare activă. Documentația și funcționalitățile su
 - [x] Interfață tactilă cu meniu de setări și flacără animată
 - [x] Mod vacanță și setări persistente
 - [x] Integrare cu Home Assistant (vreme + sincronizare)
-- [ ] Senzori I²C opționali (SHT45 / BME280)
-- [ ] Program săptămânal
-- [ ] Mai multe limbi pentru interfață
-
-*Editează această listă conform planurilor tale reale.*
 
 ---
 
@@ -322,7 +317,7 @@ Contribuțiile, raportările de probleme și cererile de funcționalități sunt
 
 ## ⚠️ Declinarea responsabilității și siguranță
 
-> [!WARNING]
+> [!ATENȚIE]
 > - Acesta este un **proiect DIY, realizat ca hobby**. Implică electronică sensibilă, **tensiune de rețea periculoasă de 230 V** și **sisteme de încălzire pe gaz**.
 > - Este oferit **exclusiv în scop educativ și experimental**, distribuit **„CA ATARE” („AS IS”)**, fără niciun fel de garanție, expresă sau implicită.
 > - Autorul **nu** recomandă, nu susține și nu garantează utilizarea lui în instalații reale, de producție sau casnice.
