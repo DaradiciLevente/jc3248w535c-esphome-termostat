@@ -11,8 +11,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Work%20in%20progress-orange)](#-roadmap)
 
-<br>
 | [English](./README.en.md) | [Română](./README.ro.md) | [Magyar](./README.hu.md)
+<br>
+
 <br>
 </div>
 
