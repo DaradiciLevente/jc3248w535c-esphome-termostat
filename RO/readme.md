@@ -1,170 +1,172 @@
 <div align="center">
 
-# 🔥 ESP32-S3 Touch Thermostat
+# 🔥 Termostat ESP32-S3 cu ecran tactil
 
-### Standalone ESPHome thermostat & boiler controller with a 3.5" touch display
+### Termostat ESPHome autonom și controler pentru centrala termică, cu ecran tactil de 3,5"
 
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.11.0%2B-000000?logo=esphome&logoColor=white)](https://esphome.io)
 [![Framework](https://img.shields.io/badge/Framework-ESP--IDF-E7352C?logo=espressif&logoColor=white)](https://github.com/espressif/esp-idf)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-optional-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-op%C8%9Bional-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
 [![Python](https://img.shields.io/badge/Python-3.11.6%2B-3776AB?logo=python&logoColor=white)](https://www.python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Work%20in%20progress-orange)](#-roadmap)
+[![Licență: MIT](https://img.shields.io/badge/Licen%C8%9B%C4%83-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-%C3%8En%20dezvoltare-orange)](#️-plan-de-dezvoltare)
+
+🇬🇧 [English](README.md) · 🇷🇴 **Română**
 
 <br>
 
 <a href="https://www.youtube.com/watch?v=7YacdU6UZSM">
-  <img src="images/main2.jpg" alt="Thermostat main dashboard" width="320">
+  <img src="images/main2.jpg" alt="Ecranul principal al termostatului" width="320">
 </a>
 
-**[▶ Watch the demo on YouTube](https://www.youtube.com/watch?v=7YacdU6UZSM)**
+**[▶ Vezi demonstrația pe YouTube](https://www.youtube.com/watch?v=7YacdU6UZSM)**
 
 </div>
 
 ---
 
 > [!WARNING]
-> **Mains voltage & gas heating. Read the [disclaimer](#️-disclaimer--safety) before building anything.**
+> **Tensiune de rețea și sistem de încălzire pe gaz. Citește [declinarea responsabilității](#️-declinarea-responsabilității-și-siguranță) înainte de a construi orice.**
 
-## 📑 Table of Contents
+## 📑 Cuprins
 
-- [✨ Highlights](#-highlights)
-- [🏗️ Architecture](#️-architecture)
-- [📸 Screenshots](#-screenshots)
-- [📱 Touch Interface Guide](#-touch-interface-guide)
-- [🧰 Hardware & Wiring](#-hardware--wiring)
-- [🚀 Installation](#-installation)
-- [🩺 Troubleshooting](#-troubleshooting)
-- [🗺️ Roadmap](#️-roadmap)
-- [🤝 Contributing](#-contributing)
-- [⚠️ Disclaimer & Safety](#️-disclaimer--safety)
-- [📄 License](#-license)
+- [✨ Funcționalități principale](#-funcționalități-principale)
+- [🏗️ Arhitectură](#️-arhitectură)
+- [📸 Capturi de ecran](#-capturi-de-ecran)
+- [📱 Ghidul interfeței tactile](#-ghidul-interfeței-tactile)
+- [🧰 Hardware și conexiuni](#-hardware-și-conexiuni)
+- [🚀 Instalare](#-instalare)
+- [🩺 Depanare](#-depanare)
+- [🗺️ Plan de dezvoltare](#️-plan-de-dezvoltare)
+- [🤝 Contribuții](#-contribuții)
+- [⚠️ Declinarea responsabilității și siguranță](#️-declinarea-responsabilității-și-siguranță)
+- [📄 Licență](#-licență)
 
 ---
 
-## ✨ Highlights
+## ✨ Funcționalități principale
 
-| | Feature | Details |
+| | Funcționalitate | Detalii |
 | :-: | :--- | :--- |
-| 🧠 | **Local control loop** | Reads the DS18B20, evaluates hysteresis and drives the relay on the device itself. No cloud, no server needed. |
-| 📡 | **Works offline** | Wi-Fi or Home Assistant down? The thermostat keeps heating and stays fully controllable from the screen. |
-| 🏠 | **Home Assistant ready** | Native API for target temperature sync, vacation mode, outdoor weather and dashboards. |
-| 🖐️ | **Full touch UI** | Dashboard + settings menu with animated transitions and an animated flame while heating. |
-| 🛡️ | **Boiler protection** | Configurable hysteresis and minimum ON/OFF times to prevent short-cycling. |
-| 💾 | **Persistent settings** | All parameters are stored in flash and survive reboots and power loss. |
-| 🌴 | **Vacation mode** | One tap to switch to a dedicated eco temperature. |
-| 🔄 | **OTA updates** | Update wirelessly once the device is mounted on the wall. |
+| 🧠 | **Buclă de control locală** | Citește DS18B20, evaluează histerezisul și comandă releul direct de pe dispozitiv. Fără cloud, fără server. |
+| 📡 | **Funcționează offline** | Wi-Fi-ul sau Home Assistant nu mai funcționează? Termostatul continuă să încălzească și poate fi controlat complet de pe ecran. |
+| 🏠 | **Pregătit pentru Home Assistant** | API nativ pentru sincronizarea temperaturii țintă, a modului vacanță, a datelor meteo exterioare și pentru dashboard-uri. |
+| 🖐️ | **Interfață tactilă completă** | Ecran principal + meniu de setări, cu tranziții animate și o flacără animată în timpul încălzirii. |
+| 🛡️ | **Protecția centralei** | Histerezis și timpi minimi de pornire/oprire configurabili, pentru a evita ciclurile scurte (short-cycling). |
+| 💾 | **Setări persistente** | Toți parametrii sunt salvați în memoria flash și se păstrează după repornire sau după o pană de curent. |
+| 🌴 | **Mod vacanță** | O singură atingere pentru a trece pe o temperatură economică dedicată. |
+| 🔄 | **Actualizări OTA** | Actualizezi firmware-ul fără fir, după ce dispozitivul a fost montat pe perete. |
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Arhitectură
 
-The thermostat uses a **hybrid design**: the ESP32-S3 is the brain, and Home Assistant is an optional extra layer.
+Termostatul folosește un **design hibrid**: ESP32-S3 este „creierul”, iar Home Assistant este un strat suplimentar opțional.
 
 ```mermaid
 flowchart LR
     S["🌡️ DS18B20<br/>GPIO 17"] --> C
     subgraph ESP["ESP32-S3 · JC3248W535C"]
-        C["Control loop<br/>(hysteresis + min on/off)"]
-        T["🖐️ Touch UI<br/>AXS15231"]
+        C["Buclă de control<br/>(histerezis + timp minim pornit/oprit)"]
+        T["🖐️ Interfață tactilă<br/>AXS15231"]
         T <--> C
     end
-    C --> R["🔌 Relay<br/>GPIO 18"]
-    R --> B["🔥 Boiler"]
-    C <-. "Native API (optional)" .-> HA["🏠 Home Assistant"]
-    HA -. "outdoor temp + weather" .-> C
+    C --> R["🔌 Releu<br/>GPIO 18"]
+    R --> B["🔥 Centrala termică"]
+    C <-. "API nativ (opțional)" .-> HA["🏠 Home Assistant"]
+    HA -. "temperatură exterioară + meteo" .-> C
 ```
 
-**Standalone (no HA required)**
-- Local temperature reading, hysteresis evaluation and direct relay control
-- Full manual control from the display: target temperature, calibration, hysteresis, vacation mode, brightness
+**Autonom (fără Home Assistant)**
+- Citirea locală a temperaturii, evaluarea histerezisului și comanda directă a releului
+- Control manual complet de pe ecran: temperatura țintă, calibrare, histerezis, mod vacanță, luminozitate
 
-**With Home Assistant (enhanced)**
-- Synchronized target temperatures and vacation mode
-- Outdoor temperature and weather condition icon (`weather.forecast_home`)
-- Remote monitoring and automations from your dashboards
+**Cu Home Assistant (funcții extinse)**
+- Sincronizarea temperaturilor țintă și a modului vacanță
+- Temperatura exterioară și pictograma stării vremii (`weather.forecast_home`)
+- Monitorizare la distanță și automatizări din dashboard-urile tale
 
 ---
 
-## 📸 Screenshots
+## 📸 Capturi de ecran
 
-| Main Dashboard | Settings Menu |
+| Ecranul principal | Meniul de setări |
 | :---: | :---: |
-| <img src="images/main2.jpg" alt="Main Dashboard" width="300"> | <img src="images/settings.jpg" alt="Settings Menu" width="300"> |
+| <img src="images/main2.jpg" alt="Ecranul principal" width="300"> | <img src="images/settings.jpg" alt="Meniul de setări" width="300"> |
 
 <div align="center">
 
-[![Watch the video](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
+[![Vezi videoclipul](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
 
-*Click the thumbnail to watch touch navigation and the animated heating flame.*
+*Apasă pe miniatură pentru a vedea navigarea tactilă și flacăra animată din timpul încălzirii.*
 
 </div>
 
 ---
 
-## 📱 Touch Interface Guide
+## 📱 Ghidul interfeței tactile
 
-The UI runs on a 3.5" IPS capacitive touch screen (`AXS15231` controller) and is rendered with ESPHome's display engine.
+Interfața rulează pe un ecran IPS capacitiv de 3,5" (controler `AXS15231`) și este randată cu motorul de afișare ESPHome.
 
-### Main Dashboard
+### Ecranul principal
 
-| Element | Description |
+| Element | Descriere |
 | :--- | :--- |
-| 🕐 **Clock & date** | Synchronized via SNTP for your local timezone |
-| 📶 **Network & weather** | Wi-Fi signal strength plus outdoor temperature and weather icon (from Home Assistant) |
-| 🌡️ **Room temperature** | Large readout from the DS18B20, with a calibration offset |
-| 🎯 **Target temperature** | Current setpoint (or the vacation setpoint) |
-| 🔥 **Heating state** | `ÎNCĂLZIRE` (heating, animated flame) · `REPAUS` (idle) · `OPRIT` (off) |
-| ➕➖ **Quick controls** | Adjust the target in **0.5 °C** steps |
-| ⚙️ **Settings** | Gear icon (top-right) opens the settings menu |
+| 🕐 **Ceas și dată** | Sincronizate prin SNTP, pentru fusul tău orar |
+| 📶 **Rețea și vreme** | Intensitatea semnalului Wi-Fi, plus temperatura exterioară și pictograma vremii (din Home Assistant) |
+| 🌡️ **Temperatura din cameră** | Afișaj mare, cu valoarea citită de DS18B20, cu offset de calibrare |
+| 🎯 **Temperatura țintă** | Valoarea setată curent (sau cea din modul vacanță) |
+| 🔥 **Starea încălzirii** | `ÎNCĂLZIRE` (încălzire activă, cu flacără animată) · `REPAUS` (în așteptare) · `OPRIT` (oprit) |
+| ➕➖ **Comenzi rapide** | Ajustezi temperatura țintă în pași de **0,5 °C** |
+| ⚙️ **Setări** | Pictograma roată dințată (dreapta sus) deschide meniul de setări |
 
-### Settings Menu
+### Meniul de setări
 
-All values are saved to flash preferences.
+Toate valorile sunt salvate în preferințele din flash.
 
-| Setting | Range / Options |
+| Setare | Interval / Opțiuni |
 | :--- | :--- |
-| **Unit** | °C / °F |
-| **Calibrare** (calibration) | −5.0 °C … +5.0 °C |
-| **Hysteresis** | 0.1 °C … 2.0 °C |
-| **Timp minim** (min. ON/OFF time) | 0 … 600 s |
-| **Mod Vacanță** (vacation mode) | ON / OFF |
-| **Temp. Vacanță** (vacation temp.) | 5.0 °C … 20.0 °C |
-| **Luminozitate** (brightness) | 10 % … 100 % |
-| **Outdoor temperature overlay** | Show / hide on the main screen |
+| **Unitate de măsură** | °C / °F |
+| **Calibrare** | −5,0 °C … +5,0 °C |
+| **Histerezis** | 0,1 °C … 2,0 °C |
+| **Timp minim** (pornit/oprit) | 0 … 600 s |
+| **Mod Vacanță** | PORNIT / OPRIT |
+| **Temp. Vacanță** | 5,0 °C … 20,0 °C |
+| **Luminozitate** | 10 % … 100 % |
+| **Afișarea temperaturii exterioare** | Afișată / ascunsă pe ecranul principal |
 
 ---
 
-## 🧰 Hardware & Wiring
+## 🧰 Hardware și conexiuni
 
-### Bill of materials
+### Lista de componente
 
-| Part | Notes |
+| Componentă | Note |
 | :--- | :--- |
-| **JC3248W535C** | ESP32-S3 board with 3.5" IPS capacitive touch display |
-| **DS18B20** | 1-Wire temperature sensor |
-| **4.7 kΩ resistor** | Pull-up between DATA and 3.3 V |
-| **Relay module** | Rated for your boiler's control circuit |
-| **5 V power supply** | Stable supply for the board |
+| **JC3248W535C** | Placă ESP32-S3 cu ecran IPS capacitiv tactil de 3,5" |
+| **DS18B20** | Senzor de temperatură 1-Wire |
+| **Rezistor 4,7 kΩ** | Pull-up între DATA și 3,3 V |
+| **Modul releu** | Dimensionat pentru circuitul de comandă al centralei tale |
+| **Sursă de alimentare 5 V** | Alimentare stabilă pentru placă |
 
-### Pin allocation
+### Alocarea pinilor
 
-| Component | Pin / Interface | Description |
+| Componentă | Pin / Interfață | Descriere |
 | :--- | :--- | :--- |
-| **Display** | `JC3248W535C` | 3.5" IPS capacitive touch display (QSPI) |
-| **Touch controller** | `AXS15231` | Integrated capacitive touch |
-| **Backlight PWM** | `GPIO 1` | Brightness control via LEDC |
-| **DS18B20** | `GPIO 17` | 1-Wire data (needs 4.7 kΩ pull-up) |
-| **Heating relay** | `GPIO 18` | Digital output to the boiler relay module |
-| **I²C bus** | SDA `GPIO 4` · SCL `GPIO 8` | Optional sensors (e.g. SHT45 / BME280) |
-| **SPI bus (display)** | CLK `GPIO 47` · Data `[21, 48, 40, 39]` | Quad SPI for fast rendering |
+| **Ecran** | `JC3248W535C` | Ecran IPS capacitiv tactil de 3,5" (QSPI) |
+| **Controler tactil** | `AXS15231` | Interfață tactilă capacitivă integrată |
+| **PWM iluminare fundal** | `GPIO 1` | Controlul luminozității prin LEDC |
+| **DS18B20** | `GPIO 17` | Linie de date 1-Wire (necesită pull-up de 4,7 kΩ) |
+| **Releu încălzire** | `GPIO 18` | Ieșire digitală către modulul releu al centralei |
+| **Magistrală I²C** | SDA `GPIO 4` · SCL `GPIO 8` | Senzori opționali (de ex. SHT45 / BME280) |
+| **Magistrală SPI (ecran)** | CLK `GPIO 47` · Date `[21, 48, 40, 39]` | Quad SPI pentru randare rapidă |
 
-### DS18B20 wiring
+### Conectarea DS18B20
 
 ```text
- 3.3V ──┬───────────── VCC (DS18B20)
+ 3,3V ──┬───────────── VCC (DS18B20)
         │
-      [4.7kΩ]
+      [4,7kΩ]
         │
  GPIO17 ┴───────────── DATA (DS18B20)
 
@@ -172,34 +174,34 @@ All values are saved to flash preferences.
 ```
 
 > [!CAUTION]
-> **ELECTRICAL HAZARD: 230 V mains**
-> - Connecting the relay to your heating system means working with mains voltage.
-> - Disconnect **both** the boiler and the thermostat power supply from the mains before touching any wiring.
-> - If you are unsure or unqualified, **consult a certified electrician**.
+> **PERICOL ELECTRIC: tensiune de rețea de 230 V**
+> - Conectarea releului la sistemul de încălzire implică lucrul cu tensiune de rețea.
+> - Deconectează de la rețea **atât** centrala, cât și sursa de alimentare a termostatului, înainte de a atinge orice conexiune.
+> - Dacă nu ești sigur sau nu ești calificat, **apelează la un electrician autorizat**.
 
 ---
 
-## 🚀 Installation
+## 🚀 Instalare
 
-**Tested environment**
+**Mediul testat**
 
-| Tool | Version |
+| Instrument | Versiune |
 | :--- | :--- |
-| OS | Windows, Linux or macOS (terminal) |
+| Sistem de operare | Windows, Linux sau macOS (terminal) |
 | Python | `3.11.6+` |
 | ESPHome | `2025.11.0+` |
-| Framework | `ESP-IDF` (configured automatically via `platformio_options` in the YAML) |
+| Framework | `ESP-IDF` (configurat automat prin `platformio_options` în fișierul YAML) |
 
-### 1️⃣ Clone the repository
+### 1️⃣ Clonează repository-ul
 
 ```bash
 git clone https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat.git
 cd jc3248w535c-esphome-termostat
 ```
 
-### 2️⃣ Configure `secrets.yaml`
+### 2️⃣ Configurează `secrets.yaml`
 
-Create or update `secrets.yaml` in your ESPHome configuration directory:
+Creează sau actualizează fișierul `secrets.yaml` în directorul tău de configurare ESPHome:
 
 ```yaml
 wifi_ssid: "Your_WiFi_SSID"
@@ -212,14 +214,14 @@ api_key: "Your_Encryption_Key_Base64"
 ```
 
 > [!TIP]
-> **Generate a valid API encryption key** (32 random bytes, base64-encoded):
+> **Generează o cheie de criptare API validă** (32 de octeți aleatori, codați în base64):
 > ```bash
 > python -c "import base64, os; print(base64.b64encode(os.urandom(32)).decode())"
 > ```
 
-### 3️⃣ Set your Home Assistant entities
+### 3️⃣ Setează entitățile din Home Assistant
 
-Edit the `substitutions` block at the top of the YAML file:
+Editează blocul `substitutions` de la începutul fișierului YAML:
 
 ```yaml
 substitutions:
@@ -227,47 +229,47 @@ substitutions:
   sensor_stare_vreme: "weather.forecast_your_home"
 ```
 
-### 4️⃣ Compile & flash
+### 4️⃣ Compilează și flashează
 
-Connect the board over USB and run:
+Conectează placa prin USB și rulează:
 
 ```bash
 esphome run termostat-esphome.yaml
 ```
 
 > [!NOTE]
-> After the first flash, once the device is on your network, later updates are done **over the air (OTA)**.
+> După primul flash, odată ce dispozitivul este în rețeaua ta, actualizările ulterioare se fac **prin aer (OTA)**.
 
 ---
 
-## 🩺 Troubleshooting
+## 🩺 Depanare
 
 <details>
-<summary><b>🌡️ DS18B20 reads <code>85.0 °C</code> or <code>--.-</code></b></summary>
+<summary><b>🌡️ DS18B20 afișează <code>85.0 °C</code> sau <code>--.-</code></b></summary>
 
 <br>
 
-**Cause:** `85.0 °C` is the chip's power-on default and indicates a communication or wiring problem.
+**Cauză:** `85.0 °C` este valoarea implicită a cipului la pornire și indică o problemă de comunicație sau de cablare.
 
-**Fix:**
-- Check the wiring on `GPIO 17`.
-- Make sure a **4.7 kΩ pull-up** connects DATA to 3.3 V.
-- Verify the sensor gets a stable 3.3 V supply.
-- The firmware filters out `85.0 °C` and out-of-range values, but correct wiring is still essential.
+**Soluție:**
+- Verifică cablarea pe `GPIO 17`.
+- Asigură-te că un **rezistor pull-up de 4,7 kΩ** leagă linia DATA de 3,3 V.
+- Verifică dacă senzorul primește o alimentare stabilă de 3,3 V.
+- Firmware-ul filtrează valorile de `85.0 °C` și pe cele din afara intervalului, dar o cablare corectă rămâne esențială.
 
 </details>
 
 <details>
-<summary><b>🖥️ Display stays black or touch does not respond</b></summary>
+<summary><b>🖥️ Ecranul rămâne negru sau atingerea nu răspunde</b></summary>
 
 <br>
 
-**Cause:** wrong pin definitions or an SPI/display configuration mismatch.
+**Cauză:** definiții greșite ale pinilor sau o nepotrivire în configurația SPI/ecran.
 
-**Fix:**
-- Confirm your board is exactly the **JC3248W535C** (ESP32-S3, QSPI display, `AXS15231` touch).
-- Check the SPI pins (`CLK: 47`, Data: `[21, 48, 40, 39]`) and I²C pins (`SDA: 4`, `SCL: 8`) against your PCB revision.
-- Inspect the serial logs for boot loops or driver errors:
+**Soluție:**
+- Confirmă că placa ta este exact **JC3248W535C** (ESP32-S3, ecran QSPI, touch `AXS15231`).
+- Verifică pinii SPI (`CLK: 47`, Date: `[21, 48, 40, 39]`) și pinii I²C (`SDA: 4`, `SCL: 8`) față de revizia PCB-ului tău.
+- Inspectează logurile seriale pentru bucle de repornire sau erori de driver:
   ```bash
   esphome logs termostat-esphome.yaml
   ```
@@ -275,71 +277,71 @@ esphome run termostat-esphome.yaml
 </details>
 
 <details>
-<summary><b>📶 Wi-Fi connection fails on boot</b></summary>
+<summary><b>📶 Conectarea la Wi-Fi eșuează la pornire</b></summary>
 
 <br>
 
-**Cause:** wrong credentials in `secrets.yaml` or a weak signal.
+**Cauză:** credențiale greșite în `secrets.yaml` sau semnal slab.
 
-**Fix:**
-- Double-check `wifi_ssid` and `wifi_password`.
-- If the main network is unreachable, the device starts its fallback access point (`ap_ssid`). Connect to it to check logs or update credentials via OTA.
+**Soluție:**
+- Verifică din nou `wifi_ssid` și `wifi_password`.
+- Dacă rețeaua principală nu poate fi atinsă, dispozitivul pornește propriul punct de acces de rezervă (`ap_ssid`). Conectează-te la el pentru a verifica logurile sau pentru a actualiza credențialele prin OTA.
 
 </details>
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Plan de dezvoltare
 
-This project is under active development. Documentation and features are still evolving.
+Proiectul este în dezvoltare activă. Documentația și funcționalitățile sunt încă în evoluție.
 
-- [x] Local control loop with hysteresis and min ON/OFF time
-- [x] Touch UI with settings menu and animated flame
-- [x] Vacation mode and persistent settings
-- [x] Home Assistant integration (weather + sync)
-- [ ] Optional I²C sensors (SHT45 / BME280)
-- [ ] Weekly schedule
-- [ ] More languages for the UI
+- [x] Buclă de control locală cu histerezis și timp minim pornit/oprit
+- [x] Interfață tactilă cu meniu de setări și flacără animată
+- [x] Mod vacanță și setări persistente
+- [x] Integrare cu Home Assistant (vreme + sincronizare)
+- [ ] Senzori I²C opționali (SHT45 / BME280)
+- [ ] Program săptămânal
+- [ ] Mai multe limbi pentru interfață
 
-*Edit this list to match your real plans.*
-
----
-
-## 🤝 Contributing
-
-Contributions, issues and feature requests are welcome! Check the [issues page](../../issues).
-
-1. Fork the project
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
-4. Push to the branch: `git push origin feature/AmazingFeature`
-5. Open a Pull Request
+*Editează această listă conform planurilor tale reale.*
 
 ---
 
-## ⚠️ Disclaimer & Safety
+## 🤝 Contribuții
+
+Contribuțiile, raportările de probleme și cererile de funcționalități sunt binevenite! Consultă [pagina de issues](../../issues).
+
+1. Fă un fork al proiectului
+2. Creează o ramură pentru funcționalitatea ta: `git checkout -b feature/AmazingFeature`
+3. Fă commit modificărilor: `git commit -m 'Add some AmazingFeature'`
+4. Trimite ramura în repository: `git push origin feature/AmazingFeature`
+5. Deschide un Pull Request
+
+---
+
+## ⚠️ Declinarea responsabilității și siguranță
 
 > [!WARNING]
-> - This is a **DIY hobby project**. It involves sensitive electronics, **dangerous 230 V mains voltage** and **gas heating systems**.
-> - It is provided for **educational and experimental purposes only**, distributed **"AS IS"**, without warranty of any kind, express or implied.
-> - The author does **not** recommend, endorse or warrant its use in real-world, production or home installations.
-> - The author assumes **no legal responsibility or liability** for any direct or indirect damage, property loss, personal injury or accident resulting from the use, misuse or implementation of this project.
-> - By downloading, cloning or using any part of this code or documentation, you acknowledge that you are **solely responsible** for compliance with local electrical and safety regulations, and you assume **100% of the risk and liability**.
+> - Acesta este un **proiect DIY, realizat ca hobby**. Implică electronică sensibilă, **tensiune de rețea periculoasă de 230 V** și **sisteme de încălzire pe gaz**.
+> - Este oferit **exclusiv în scop educativ și experimental**, distribuit **„CA ATARE” („AS IS”)**, fără niciun fel de garanție, expresă sau implicită.
+> - Autorul **nu** recomandă, nu susține și nu garantează utilizarea lui în instalații reale, de producție sau casnice.
+> - Autorul **nu își asumă nicio răspundere legală sau obligație** pentru daune directe sau indirecte, pierderi materiale, vătămări corporale sau accidente rezultate din utilizarea, folosirea necorespunzătoare sau implementarea acestui proiect.
+> - Prin descărcarea, clonarea sau utilizarea oricărei părți din acest cod sau din această documentație, recunoști că ești **singurul responsabil** pentru respectarea reglementărilor locale privind siguranța și instalațiile electrice și îți asumi **100% din risc și din răspunderea legală**.
 
 ---
 
-## 📄 License
+## 📄 Licență
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+Distribuit sub **Licența MIT**. Consultă fișierul [`LICENSE`](LICENSE) pentru detalii.
 
 ---
 
 <div align="center">
 
-*Built with passion for makers, DIY enthusiasts and smart home tinkerers.*
+*Creat cu pasiune pentru makeri, pasionați de DIY și entuziaști ai casei inteligente.*
 
-**Crafted by [Levente Daradici](https://github.com/DaradiciLevente)** 🚀
+**Realizat de [Levente Daradici](https://github.com/DaradiciLevente)** 🚀
 
-⭐ If this project helped you, consider giving it a star!
+⭐ Dacă acest proiect ți-a fost de folos, gândește-te să-i dai o stea!
 
 </div>
