@@ -16,7 +16,7 @@
 <br>
 
 <a href="https://www.youtube.com/watch?v=7YacdU6UZSM">
-  <img src="images/main2.jpg" alt="Ecranul principal al termostatului" width="320">
+  <img src="../images/main2.jpg" alt="Ecranul principal al termostatului" width="320">
 </a>
 
 **[▶ Vezi demonstrația pe YouTube](https://www.youtube.com/watch?v=7YacdU6UZSM)**
