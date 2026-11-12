@@ -153,7 +153,7 @@ TMinden érték a flash memóriában mentődik.
 | **DS18B20** | `GPIO 17` | 1-Wire adatvonal (4,7 kΩ-os pull-up szükséges) |
 | **Fűtés relé** | `GPIO 18` | Digitális kimenet a kazán relé modulja felé |
 | **I²C busz | SDA `GPIO 4` · SCL `GPIO 8` | Opcionális érzékelők (pl. SHT45 / BME280) |
-| **SPI busz (kijelző)** | CLK GPIO 47 · Adat [21, 48, 40, 39] | Quad SPI a gyors rendereléshez |
+| **SPI busz (kijelző)** | CLK `GPIO 47` · Adat `[21, 48, 40, 39]` | Quad SPI a gyors rendereléshez |
 
 ### Conectarea DS18B20
 
