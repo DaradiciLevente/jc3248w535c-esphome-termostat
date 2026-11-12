@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🔥 Termostat tactil ESP32-S3 și controller pentru centrală pe gaz
+# 🔥 ESP32-S3 érintőkijelzős termosztát és gázkazán-vezérlő
 
-### Termostat ESPHome autonom și controler pentru centrala termică, cu ecran tactil de 3,5"
+### Önálló ESPHome termosztát és gázkazán-vezérlő, 3,5"-os érintőkijelzővel
 
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.11.0%2B-000000?logo=esphome&logoColor=white)](https://esphome.io)
 [![Framework](https://img.shields.io/badge/Framework-ESP--IDF-E7352C?logo=espressif&logoColor=white)](https://github.com/espressif/esp-idf)
@@ -17,9 +17,9 @@
 
 <div align="center">
 
-[![Vezi videoclipul](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
+[![Videó megtekintése](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
 
-*Apasă pe imagine pentru a vedea un scurt demo cu funcționarea termostatului*
+*Kattints a képre egy rövid bemutatóvideó megtekintéséhez a termosztát működéséről*
 
 </div>
 </div>
@@ -27,36 +27,36 @@
 ---
 
 > [!WARNING]
-> **Tensiune de rețea și sistem de încălzire pe gaz. Citește [declinarea responsabilității](#️-declinarea-responsabilității-și-siguranță) înainte de a construi orice.**
+> **Hálózati feszültség és gázfűtési rendszer. A építés megkezdése előtt olvasd el a [felelősségkizárást](#️-felelősségkizárás-és-biztonság).**
 
-## 📑 Cuprins
+## 📑 Tartalomjegyzék
 
-- [✨ Funcționalități principale](#-funcționalități-principale)
-- [🏗️ Arhitectură](#️-arhitectură)
-- [📸 Capturi de ecran](#-capturi-de-ecran)
-- [📱 Ghidul interfeței tactile](#-ghidul-interfeței-tactile)
-- [🧰 Hardware și conexiuni](#-hardware-și-conexiuni)
-- [🚀 Instalare](#-instalare)
-- [🩺 Depanare](#-depanare)
-- [🗺️ Plan de dezvoltare](#️-plan-de-dezvoltare)
-- [🤝 Contribuții](#-contribuții)
-- [⚠️ Declinarea responsabilității și siguranță](#️-declinarea-responsabilității-și-siguranță)
-- [📄 Licență](#-licență)
-
+- [✨ Fő funkciók](#-fő-funkciók)
+- [🏗️ Architektúra](#️-architektúra)
+- [📸 Képernyőképek](#-képernyőképek)
+- [📱 Az érintőfelület útmutatója](#-az-érintőfelület-útmutatója)
+- [🧰 Hardver és csatlakozások](#-hardver-és-csatlakozások)
+- [🚀 Telepítés](#-telepítés)
+- [🩺 Hibaelhárítás](#-hibaelhárítás)
+- [🗺️ Fejlesztési terv](#️-fejlesztési-terv)
+- [🤝 Közreműködés](#-közreműködés)
+- [⚠️ Felelősségkizárás és biztonság](#️-felelősségkizárás-és-biztonság)
+- [📄 Licenc](#-licenc)
 ---
 
-## ✨ Funcționalități principale
+## ✨ Fő funkciók
 
-| | Funcționalitate | Detalii |
+| | Funkció | Részletek |
 | :-: | :--- | :--- |
-| 🧠 | **Buclă de control locală** | Citește DS18B20, evaluează histerezisul și comandă releul direct de pe dispozitiv. Fără cloud, fără server. |
-| 📡 | **Funcționează offline** | Wi-Fi-ul sau Home Assistant nu mai funcționează? Termostatul continuă să încălzească și poate fi controlat complet de pe ecranul tactil. |
-| 🏠 | **Pregătit pentru Home Assistant** | API nativ pentru sincronizarea temperaturii țintă, a modului vacanță, a datelor meteo exterioare și pentru dashboard-uri. |
-| 🖐️ | **Interfață tactilă completă** | Ecran principal + meniu de setări, cu tranziții animate și o flacără animată în timpul încălzirii. |
-| 🛡️ | **Protecția centralei** | Histerezis și timpi minimi de pornire/oprire configurabili, pentru a evita ciclurile scurte (short-cycling). |
-| 💾 | **Setări persistente** | Toți parametrii sunt salvați în memoria flash și se păstrează după repornire sau după o pană de curent. |
-| 🌴 | **Mod vacanță** | O singură atingere pentru a trece pe o temperatură economică dedicată. |
-| 🔄 | **Actualizări OTA** | Poți să actualizezi firmware-ul wireless, după ce dispozitivul a fost montat pe perete. |
+| 🧠 | **Helyi vezérlési ciklus** | Beolvassa a DS18B20-at, kiértékeli a hiszterézist és közvetlenül vezérli a relét az eszközről. Nincs felhő, nincs szerver. |
+| 📡 | **Offline működés** | Ha a Wi-Fi vagy a Home Assistant nem elérhető, a termosztát tovább fűt, és teljesen vezérelhető az érintőképernyőről. |
+| 🏠 | **Home Assistant-kompatibilis** | Natív API a célhőmérséklet, a nyaralási mód és a külső időjárási adatok szinkronizálásához, valamint dashboardokhoz. |
+| 🖐️ | **Teljes érintőfelület** | Főképernyő + beállítási menü, animált átmenetekkel és animált lánggal fűtés közben. |
+| 🛡️ | **A kazán védelme** | Konfigurálható hiszterézis és minimális be-/kikapcsolási idők a rövid ciklusok (short-cycling) elkerülésére. |
+| 💾 | **Tartós beállítások** | Minden paraméter a flash memóriába mentődik, és újraindítás vagy áramszünet után is megmarad. |
+| 🌴 | **Nyaralási mód** | Egyetlen érintéssel átválthatsz egy dedikált takarékos hőmérsékletre. |
+| 🔄 | **OTA-frissítések** | A firmware vezeték nélkül frissíthető, miután az eszközt felszerelted a falra. |
+
 
 ---
 
