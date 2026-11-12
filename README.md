@@ -1,98 +1,202 @@
 <div align="center">
 
-# 🔥 ESP32-S3 Touch Thermostat & Boiler Controller
+# 🔥 ESP32-S3 Touchscreen Thermostat & Gas Boiler Controller
 
-### An advanced, standalone-capable ESPHome thermostat featuring a 3.5" IPS touch display, local control loop, and Home Assistant integration.
+### Standalone ESPHome thermostat and boiler controller with a 3.5" touchscreen
 
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.11.0%2B-000000?logo=esphome&logoColor=white)](https://esphome.io)
 [![Framework](https://img.shields.io/badge/Framework-ESP--IDF-E7352C?logo=espressif&logoColor=white)](https://github.com/espressif/esp-idf)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-optional-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
 [![Python](https://img.shields.io/badge/Python-3.11.6%2B-3776AB?logo=python&logoColor=white)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Work%20in%20progress-orange)](#-roadmap)
+[![Status](https://img.shields.io/badge/Status-In%20development-orange)](#️-roadmap)
 
 | [English](./README.md) | [Română](./README.ro.md) | [Magyar](./README.hu.md)
-<br>
 
 <br>
+
+<div align="center">
+
+[![Watch the video](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
+
+*Click the image to watch a short demo of the thermostat in action*
+
+</div>
 </div>
 
 ---
 
-> [!IMPORTANT]
-> **🚧 WORK IN PROGRESS:** 
-> This project is currently under active development. Features are continuously being improved, and this documentation is not yet final. Expect updates, adjustments, and new capabilities as the project evolves!
-
----
-
 > [!WARNING]
->  **DISCLAIMER:** 
-> * This project is a DIY (Do It Yourself) hobby endeavor. It involves working with sensitive electronic components, high and dangerous electrical voltages (230V), and gas heating systems.
-> 
-> * This project is provided for educational and experimental purposes only and is distributed "AS IS", without warranty of any kind, express or implied.
-> * The author does not recommend, endorse, or warrant the use of this project in real-world, production, or home installations.
-> * The author assumes NO legal responsibility, liability, or obligation for any direct or indirect damages, property loss, personal injury, or accidents resulting from the use, misuse, or implementation of this project.
-> * By downloading, cloning, or using any part of this code or documentation, you explicitly acknowledge that you are solely responsible for compliance with local electrical and safety regulations, and you assume 100% of the risk and legal liability.
+> **Mains voltage and gas heating system. Read the [disclaimer](#️-disclaimer-and-safety) before building anything.**
+
+## 📑 Table of Contents
+
+- [✨ Key Features](#-key-features)
+- [🏗️ Architecture](#️-architecture)
+- [📸 Screenshots](#-screenshots)
+- [📱 Touch Interface Guide](#-touch-interface-guide)
+- [🧰 Hardware & Wiring](#-hardware--wiring)
+- [🚀 Installation](#-installation)
+- [🩺 Troubleshooting](#-troubleshooting)
+- [🗺️ Roadmap](#️-roadmap)
+- [🤝 Contributing](#-contributing)
+- [⚠️ Disclaimer & Safety](#️-disclaimer--safety)
+- [📄 License](#-license)
 
 ---
 
-## 🛠️ Prerequisites & Environment
+## ✨ Key Features
 
-To successfully compile and flash this firmware to your JC3248W535 display board, the project has been tested and verified with the following environment:
-
-* **OS:** Cross-platform (Windows, Linux, or macOS via Terminal)
-* **Python:** `3.11.6+`
-* **ESPHome:** `2025.11.0+`
-* **Framework:** `ESP-IDF` (automatically configured via platformio_options in the YAML file)
-
----
-
-  ## 🌟 Core Architecture & Home Assistant Integration
-
-This thermostat is designed with a hybrid architecture that ensures absolute reliability and flexibility:
-
-* **Standalone Operation (No HA Required):** The ESP32-S3 board runs its own internal control loop via ESPHome. It reads the local DS18B20 temperature sensor, evaluates hysteresis, controls the heating relay directly, and allows full manual control (temperature adjustment, calibration, hysteresis, vacation mode, and screen brightness) directly from the touch display—even if your Wi-Fi or Home Assistant server goes offline.
-* **Home Assistant Integration (Enhanced Features):** When connected to Home Assistant via the native API, the thermostat unlocks extended capabilities:
-  * Synchronization of target temperatures and vacation modes.
-  * Integration of outdoor weather data and condition icons (`weather.forecast_home`).
-  * Remote monitoring and automations via Home Assistant dashboards.
+| | Feature | Details |
+| :-: | :--- | :--- |
+| 🧠 | **Local control loop** | Reads the DS18B20, evaluates the hysteresis and drives the relay directly from the device. No cloud, no server. |
+| 📡 | **Works offline** | Wi-Fi or Home Assistant down? The thermostat keeps heating and can be fully controlled from the touchscreen. |
+| 🏠 | **Home Assistant ready** | Native API for syncing the target temperature, vacation mode and outdoor weather data, and for dashboards. |
+| 🖐️ | **Full touch interface** | Main screen + settings menu, with animated transitions and an animated flame while heating. |
+| 🛡️ | **Boiler protection** | Configurable hysteresis and minimum on/off times to prevent short-cycling. |
+| 💾 | **Persistent settings** | All parameters are stored in flash memory and survive reboots and power outages. |
+| 🌴 | **Vacation mode** | One tap to switch to a dedicated economy temperature. |
+| 🔄 | **OTA updates** | Update the firmware wirelessly, even after the device is mounted on the wall. |
 
 ---
 
-## 🔌 Wiring & Hardware Connections
+## 🏗️ Architecture
 
-The JC3248W535C display board integrates an ESP32-S3 chip. Below are the physical pin allocations and peripheral connections used in this project:
+The thermostat uses a **hybrid design**: the ESP32-S3 is the "brain", and Home Assistant is an optional extra layer.
+
+```mermaid
+flowchart LR
+    S["🌡️ DS18B20<br/>GPIO 17"] --> C
+    subgraph ESP["ESP32-S3 · JC3248W535C"]
+        C["Control loop<br/>(hysteresis + min on/off time)"]
+        T["🖐️ Touch interface<br/>AXS15231"]
+        T <--> C
+    end
+    C --> R["🔌 Relay<br/>GPIO 18"]
+    R --> B["🔥 Boiler"]
+    C <-. "Native API (optional)" .-> HA["🏠 Home Assistant"]
+    HA -. "outdoor temperature + weather" .-> C
+```
+
+**Standalone (without Home Assistant)**
+- Local temperature reading, hysteresis evaluation and direct relay control
+- Full manual control from the screen: target temperature, calibration, hysteresis, vacation mode, brightness
+
+**With Home Assistant (extended features)**
+- Synchronization of target temperatures and vacation mode
+- Outdoor temperature and weather condition icon (`weather.forecast_home`)
+- Remote monitoring and automations from your own dashboards
+
+---
+
+## 📸 Screenshots
+
+| Main screen | Settings menu |
+| :---: | :---: |
+| <img src="images/main2.jpg" alt="Main screen" width="300"> | <img src="images/settings.jpg" alt="Settings menu" width="300"> |
+
+
+---
+
+## 📱 Touch Interface Guide
+
+The interface runs on a 3.5" capacitive IPS display (`AXS15231` controller) and is rendered with the ESPHome display engine.
+
+### Main screen
+
+| Element | Description |
+| :--- | :--- |
+| 🕐 **Clock & date** | Synchronized via SNTP for your time zone |
+| 📶 **Network & weather** | Wi-Fi signal strength, plus outdoor temperature and weather icon (from Home Assistant) |
+| 🌡️ **Room temperature** | Large display of the value read by the DS18B20, with calibration offset applied |
+| 🎯 **Target temperature** | The currently set value (or the vacation-mode value) |
+| 🔥 **Heating status** | `HEATING` (actively heating, with animated flame) · `IDLE` (standing by) · `OFF` (thermostat off) |
+| ➕➖ **Quick controls** | Adjust the target temperature in steps of **0.5 °C** |
+| ⚙️ **Settings** | The gear icon (top right) opens the settings menu |
+
+### Settings menu
+
+All values are saved to flash memory.
+
+| Setting | Range / Options |
+| :--- | :--- |
+| **Unit of measurement** | °C / °F |
+| **Calibration** | −5.0 °C … +5.0 °C |
+| **Hysteresis** | 0.1 °C … 2.0 °C |
+| **Minimum time** (on/off) | 0 … 600 s |
+| **Vacation Mode** | ON / OFF |
+| **Vacation Temp.** | 5.0 °C … 20.0 °C |
+| **Brightness** | 10 % … 100 % |
+| **Outdoor temperature display** | Shown / hidden on the main screen |
+
+---
+
+## 🧰 Hardware & Wiring
+
+### Bill of materials
+
+| Component | Notes |
+| :--- | :--- |
+| **JC3248W535C** | ESP32-S3 board with a 3.5" capacitive touch IPS display |
+| **DS18B20** | 1-Wire temperature sensor |
+| **4.7 kΩ resistor** | Pull-up between DATA and 3.3 V |
+| **Relay module** | Rated for your boiler's control circuit |
+| **5 V power supply** | Stable power for the board |
+
+### Pin assignment
 
 | Component | Pin / Interface | Description |
 | :--- | :--- | :--- |
-| **Display Board** | `JC3248W535C` | 3.5" IPS Capacitive Touch Display (MIPI SPI) |
-| **Touch Controller** | `AXS15231` | Integrated capacitive touch interface |
-| **Backlight PWM** | `GPIO 1` | Backlight brightness control via LEDC |
-| **DS18B20 Sensor** | `GPIO 17` | 1-Wire data line for room temperature measurement (requires 4.7kΩ pull-up resistor) |
-| **Heating Relay** | `GPIO 18` | Digital output to trigger the boiler relay module |
-| **I2C Bus** | SDA: `GPIO 4`, SCL: `GPIO 8` | Reserved for optional sensors (e.g., SHT45 / BME280) |
-| **SPI Bus (Display)** | CLK: `GPIO 47`, Data: `[21, 48, 40, 39]` | Quad SPI interface for high-speed display rendering |
+| **Display** | `JC3248W535C` | 3.5" capacitive touch IPS display (QSPI) |
+| **Touch controller** | `AXS15231` | Integrated capacitive touch interface |
+| **Backlight PWM** | `GPIO 1` | Brightness control via LEDC |
+| **DS18B20** | `GPIO 17` | 1-Wire data line (requires a 4.7 kΩ pull-up) |
+| **Heating relay** | `GPIO 18` | Digital output to the boiler's relay module |
+| **I²C bus** | SDA `GPIO 4` · SCL `GPIO 8` | Optional sensors (e.g. SHT45 / BME280) |
+| **SPI bus (display)** | CLK `GPIO 47` · Data `[21, 48, 40, 39]` | Quad SPI for fast rendering |
 
-> [!CAUTION]
-> **ELECTRICAL HAZARD:** 
-> * Connecting the relay output to your heating system involves working with **230V mains voltage**. 
-> * Always disconnect both the central heating boiler (gas/electric heating system) and the thermostat power supply from the mains before wiring any physical components. 
-> * If you are unsure or lack qualifications, always consult a certified electrician.
+### Wiring the DS18B20
+
+```text
+ 3.3V ──┬───────────── VCC (DS18B20)
+        │
+      [4.7kΩ]
+        │
+ GPIO17 ┴───────────── DATA (DS18B20)
+
+ GND ────────────────── GND (DS18B20)
+```
+
+> [!WARNING]
+> **ELECTRICAL HAZARD: 230 V mains voltage**
+> - Connecting the relay to the heating system involves working with mains voltage.
+> - Disconnect **both** the boiler and the thermostat's power supply from the mains before touching any connection.
+> - If you are unsure or not qualified, **hire a licensed electrician**.
 
 ---
 
-## 🚀 Installation & Setup Guide
+## 🚀 Installation
 
-Follow these steps to set up, configure, and flash the firmware onto your JC3248W535 display board using ESPHome.
+**Tested environment**
 
-### Step 1: Clone or Download the Repository
-Clone this repository or download the source files into your local ESPHome configuration directory:
+| Tool | Version |
+| :--- | :--- |
+| Operating system | Windows, Linux or macOS (terminal) |
+| Python | `3.11.6+` |
+| ESPHome | `2025.11.0+` |
+| Framework | `ESP-IDF` (configured automatically through `platformio_options` in the YAML file) |
+
+### 1️⃣ Clone the repository
+
 ```bash
 git clone https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat.git
+cd jc3248w535c-esphome-termostat
 ```
 
-### Step 2: Configure secrets.yaml
-In your main ESPHome configuration directory (where your secrets file resides), ensure you have defined the necessary credentials. Create or update your secrets.yaml file with the following entries:
+### 2️⃣ Configure `secrets.yaml`
+
+Create and update the `secrets.yaml` file in your ESPHome configuration directory:
+
 ```yaml
 wifi_ssid: "Your_WiFi_SSID"
 wifi_password: "Your_WiFi_Password"
@@ -102,127 +206,131 @@ api_password: "Your_ESPHome_API_Password"
 ota_password: "Your_OTA_Password"
 api_key: "Your_Encryption_Key_Base64"
 ```
+
 > [!TIP]
-> **Generating Encryption Keys:**
-> If you need to generate a secure 32-character base64 encryption key for the `api_key` in your `secrets.yaml`, you can run the following command in your terminal using ESPHome:
+> **Generate a valid API encryption key** (32 random bytes, base64-encoded):
 > ```bash
 > python -c "import base64, os; print(base64.b64encode(os.urandom(32)).decode())"
 > ```
-> This will output a secure key that you can copy and paste directly into your secrets file.
-> 
-### Step 3: Update Sensor Entities (Substitutions)
-Open the YAML configuration file and update the top substitution variables to match your Home Assistant entity IDs:
+
+### 3️⃣ Set your Home Assistant entities
+
+Edit the `substitutions` block at the top of the YAML file:
+
 ```yaml
 substitutions:
   sensor_temp_exterior: "sensor.your_outdoor_temperature_sensor"
   sensor_stare_vreme: "weather.forecast_your_home"
 ```
 
-### Step 4: Compile and Flash
-Connect your ESP32-S3 display board to your computer via USB and run the compilation command using ESPHome CLI:
+### 4️⃣ Compile and upload the firmware
+
+Connect the board via USB and run:
+
 ```bash
 esphome run termostat-esphome.yaml
 ```
-##### (Note: For subsequent updates once the device is mounted on the wall and connected to your local network, ESPHome will automatically perform Over-The-Air (OTA) updates.)
+
+> [!NOTE]
+> After the first flash, once the device is connected to your Wi-Fi network, subsequent updates can be done **over the air (OTA)**.
 
 ---
 
+## 🩺 Troubleshooting
+
+<details>
+<summary><b>🌡️ DS18B20 shows <code>85.0 °C</code> or <code>--.-</code></b></summary>
+
+<br>
+
+**Cause:** `85.0 °C` is the chip's default power-on value and indicates a communication or wiring problem.
+
+**Solution:**
+- Check the wiring on `GPIO 17`.
+- Make sure a **4.7 kΩ pull-up resistor** connects the DATA line to 3.3 V.
+- Verify that the sensor receives a stable 3.3 V supply.
+- The firmware filters out `85.0 °C` and out-of-range values, but correct wiring is still essential.
+
+</details>
+
+<details>
+<summary><b>🖥️ The screen stays black or touch does not respond</b></summary>
+
+<br>
+
+**Cause:** wrong pin definitions or a mismatch in the SPI/display configuration.
+
+**Solution:**
+- Confirm that your board is exactly the **JC3248W535C** (ESP32-S3, QSPI display, `AXS15231` touch).
+- Check the SPI pins (`CLK: 47`, Data: `[21, 48, 40, 39]`) and the I²C pins (`SDA: 4`, `SCL: 8`) against your PCB revision.
+- Inspect the serial logs for boot loops or driver errors:
+  ```bash
+  esphome logs termostat-esphome.yaml
+  ```
+
+</details>
+
+<details>
+<summary><b>📶 Wi-Fi connection fails at startup</b></summary>
+
+<br>
+
+**Cause:** wrong credentials in `secrets.yaml` or a weak signal.
+
+**Solution:**
+- Double-check `wifi_ssid` and `wifi_password`.
+- If the main network cannot be reached, the device starts its own fallback access point (`ap_ssid`). Connect to it to check the logs or to update the credentials via OTA.
+
+</details>
+
 ---
 
-## 📸 Screenshots & Video Demo
+## 🗺️ Roadmap
 
-### Touch Interface
-Below is a preview of the main dashboard and the settings menu running on the JC3248W535C display board:
+The project is under active development. Documentation and features are still evolving.
 
-| Main Dashboard | Settings Menu |
-| :---: | :---: |
-| ![Main Dashboard](images/main2.jpg) | ![Settings Menu](images/settings.jpg) |
-
-### Video Demonstration
-Watch the thermostat in action, including touch navigation and the animated heating flame effect:
-
-[![Watch the video](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
-
-*(Click the thumbnail above to watch the full video on YouTube)*
-
----
-
-## 📱 Features & Touch Interface Guide
-
-The thermostat features a modern, responsive 3.5" IPS capacitive touch interface powered by the `AXS15231` controller and built using ESPHome's custom display rendering engine.
-
-### 1. Main Dashboard
-* **Real-time Clock & Date:** Synchronized automatically via SNTP (configured for your local timezone).
-* **Network & Weather Status:** Live Wi-Fi signal strength indicator and outdoor temperature/weather condition watermark (synced from Home Assistant).
-* **Current Room Temperature:** Large display showing the precise temperature measured by the local DS18B20 sensor (with customizable temperature calibration offset).
-* **Target Temperature Box:** Clear indication of the target setpoint (or holiday setpoint).
-* **Heating State Indicator:** Visual status showing **"ÎNCĂLZIRE"** (Heating active with a smooth animated flame effect), **"REPAUS"** (Idle), or **"OPRIT"** (Off mode).
-* **Quick Controls:** Direct `-` and `+` touch buttons at the bottom to adjust the target temperature by 0.5°C increments.
-* **Settings Access:** Tapping the gear icon in the top-right corner opens the settings menu with a smooth transition animation.
-
-### 2. Settings Menu
-Tapping the gear icon gives you direct access to configure critical parameters locally on the device (backed up to flash preferences):
-* **Unit of Measurement:** Toggle between Celsius (°C) and Fahrenheit (°F).
-* **Temperature Calibration (Calibrare):** Fine-tune sensor offsets from -5.0°C to +5.0°C.
-* **Hysteresis:** Adjust the heating differential (from 0.1°C to 2.0°C) to prevent short-cycling of the boiler.
-* **Minimum On/Off Time (Timp minim):** Set protection delays (0 to 600 seconds).
-* **Vacation Mode (Mod Vacanță):** Toggle vacation mode **ON/OFF** to quickly switch between normal operation and eco mode.
-* **Vacation Temperature (Temp. Vacanță):** Set the dedicated eco-temperature target used when vacation mode is active (adjustable from 5.0°C to 20.0°C).
-* **Display Brightness (Luminozitate):** Adjust backlight PWM level from 10% to 100%.
-* **Outdoor Temperature Display:** Enable or disable the outdoor temperature and weather icon overlay on the main screen.
-
----
-
-## 🛠️ Troubleshooting
-
-If you encounter issues during setup, compilation, or runtime, check the common solutions below:
-
-### 1. DS18B20 Temperature Sensor reads `85.0°C` or `--.-°C`
-* **Cause:** A reading of `85.0°C` is the power-on reset default value of the DS18B20 chip, indicating a communication failure or incorrect wiring. 
-* **Solution:** 
-  * Check the wiring on `GPIO 17`.
-  * Ensure a **4.7kΩ pull-up resistor** is properly connected between the Data line and VCC (3.3V).
-  * Verify that the sensor is receiving stable 3.3V power.
-  * The firmware includes built-in filters to automatically discard `85.0°C` and out-of-range values, but proper wiring is essential.
-
-### 2. Display Remains Black or Touch Is Unresponsive
-* **Cause:** Incorrect pin definitions or SPI/MIPI configuration mismatch.
-* **Solution:**
-  * Verify that your hardware board is strictly the **JC3248W535C** (ESP32-S3 model with MIPI SPI display and `AXS15231` touch controller).
-  * Ensure the SPI pins (`CLK: 47`, Data: `[21, 48, 40, 39]`) and I2C pins (`SDA: 4`, `SCL: 8`) match your physical PCB revision.
-  * Check the serial logs via USB (`esphome logs termostat-esphome.yaml`) to inspect potential boot loops or driver errors.
-
-### 3. Wi-Fi Connection Failures on Boot
-* **Cause:** Incorrect credentials in `secrets.yaml` or weak signal strength.
-* **Solution:**
-  * Double-check your `wifi_ssid` and `wifi_password` in `secrets.yaml`.
-  * If the device cannot reach your primary network, it will start its own fallback Access Point (`ap_ssid`) allowing you to connect directly and check logs or update credentials via OTA.
+- [x] Local control loop with hysteresis and minimum on/off time
+- [x] Touch interface with settings menu and animated flame
+- [x] Vacation mode and persistent settings
+- [x] Home Assistant integration (weather + sync)
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](../../issues) if you want to contribute.
+Contributions, bug reports and feature requests are welcome! Check the [issues page](../../issues).
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
+1. Fork the project
+2. Create your feature branch: `git checkout -b feature/AmazingFeature`
+3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
+4. Push the branch to the repository: `git push origin feature/AmazingFeature`
 5. Open a Pull Request
+
+---
+
+## ⚠️ Disclaimer & Safety
+
+> [!WARNING]
+> - This is a **DIY hobby project**. It involves sensitive electronics, **dangerous 230 V mains voltage** and **gas heating systems**.
+> - It is provided **for educational and experimental purposes only**, distributed **"AS IS"**, without warranty of any kind, express or implied.
+> - The author does **not** recommend, endorse or guarantee its use in real, production or household installations.
+> - The author **assumes no legal liability or obligation** for direct or indirect damages, property loss, personal injury or accidents resulting from the use, misuse or implementation of this project.
+> - By downloading, cloning or using any part of this code or documentation, you acknowledge that you are **solely responsible** for complying with local safety and electrical regulations and that you assume **100% of the risk and legal liability**.
 
 ---
 
 ## 📄 License
 
-Distributed under the **MIT License**. See `LICENSE` file for more information.
+Distributed under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
 
 ---
 
-
 <div align="center">
 
- *"Built with passion for makers, DIY enthusiasts, and smart home tinkerers."*
- 
-**Crafted by Levente Daradici** 🚀
+*Made with passion for makers, DIY enthusiasts and smart-home fans.*
+
+**Created by [Levente Daradici](https://github.com/DaradiciLevente)** 🚀
+
+⭐ If this project was useful to you, consider giving it a star!
 
 </div>
