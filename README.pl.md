@@ -11,7 +11,7 @@
 [![Licencja: MIT](https://img.shields.io/badge/Licencja-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-W%20trakcie%20rozwoju-orange)](#️-plan-rozwoju)
 
-| [English](./README.md) | [Română](./README.ro.md) | [Magyar](./README.hu.md) | [Polski](./README.pl.md) | [Deutsch](./README.de.md)
+| [English](./README.md) | [Română](./README.ro.md) | [Magyar](./README.hu.md) | [Polski](./README.pl.md) | [Deutsch](./README.de.md) | [Français](./README.fr.md)
 
 <br>
 
