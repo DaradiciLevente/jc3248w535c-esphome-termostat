@@ -15,13 +15,13 @@
 
 <br>
 
-<a href="https://www.youtube.com/watch?v=7YacdU6UZSM">
-  <img src="/images/main2.jpg" alt="Ecranul principal al termostatului" width="320">
-  <img src="/images/settings.jpg" alt="Ecranul principal al termostatului" width="320">
-</a>
+<div align="center">
 
-**[▶ Vezi demonstrația pe YouTube](https://www.youtube.com/watch?v=7YacdU6UZSM)**
+[![Vezi videoclipul](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
 
+*Apasă pe imagine pentru a vedea un scurt demo cu funcționarea termostatului*
+
+</div>
 </div>
 
 ---
@@ -95,13 +95,6 @@ flowchart LR
 | :---: | :---: |
 | <img src="images/main2.jpg" alt="Ecranul principal" width="300"> | <img src="images/settings.jpg" alt="Meniul de setări" width="300"> |
 
-<div align="center">
-
-[![Vezi videoclipul](https://img.youtube.com/vi/7YacdU6UZSM/0.jpg)](https://www.youtube.com/watch?v=7YacdU6UZSM)
-
-*Apasă pe imagine pentru a vedea un scurt demo cu funcționarea termostatului*
-
-</div>
 
 ---
 
