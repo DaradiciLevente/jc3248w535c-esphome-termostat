@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 Termostat ESP32-S3 cu ecran tactil
+# 🔥 Termostat tactil ESP32-S3 și controller pentru centrală pe gaz
 
 ### Termostat ESPHome autonom și controler pentru centrala termică, cu ecran tactil de 3,5"
 
