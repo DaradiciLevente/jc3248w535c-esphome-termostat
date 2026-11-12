@@ -11,7 +11,7 @@
 [![Licență: MIT](https://img.shields.io/badge/Licen%C8%9B%C4%83-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-%C3%8En%20dezvoltare-orange)](#️-plan-de-dezvoltare)
 
-**Română** | [English](./README.en.md) | [Română](./README.ro.md) | [Magyar](./README.hu.md)
+| [English](./README.en.md) | [Română](./README.ro.md) | [Magyar](./README.hu.md)
 
 <br>
 
