@@ -167,7 +167,7 @@ Toate valorile sunt salvate în memoria flash.
  GND ────────────────── GND (DS18B20)
 ```
 
-> [!ATENȚIE]
+> [!WARNING]
 > **PERICOL ELECTRIC: tensiune de rețea de 230 V**
 > - Conectarea releului la sistemul de încălzire implică lucrul cu tensiune de rețea.
 > - Deconectează de la rețea **atât** centrala, cât și sursa de alimentare a termostatului, înainte de a atinge orice conexiune.
@@ -310,7 +310,7 @@ Contribuțiile, raportările de probleme și cererile de funcționalități sunt
 
 ## ⚠️ Declinarea responsabilității și siguranță
 
-> [!ATENȚIE]
+> [!WARNING]
 > - Acesta este un **proiect DIY, realizat ca hobby**. Implică electronică sensibilă, **tensiune de rețea periculoasă de 230 V** și **sisteme de încălzire pe gaz**.
 > - Este oferit **exclusiv în scop educativ și experimental**, distribuit **„CA ATARE” („AS IS”)**, fără niciun fel de garanție, expresă sau implicită.
 > - Autorul **nu** recomandă, nu susține și nu garantează utilizarea lui în instalații reale, de producție sau casnice.
