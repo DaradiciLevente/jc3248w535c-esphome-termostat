@@ -3,8 +3,7 @@
 # 🔥 ESP32-S3 érintőkijelzős termosztát és gázkazán-vezérlő
 
 ### Önálló ESPHome termosztát és gázkazán-vezérlő, 3,5"-os érintőkijelzővel
-<br>
-<br>
+
 [![ESPHome](https://img.shields.io/badge/ESPHome-2025.11.0%2B-000000?logo=esphome&logoColor=white)](https://esphome.io)
 [![Framework](https://img.shields.io/badge/Framework-ESP--IDF-E7352C?logo=espressif&logoColor=white)](https://github.com/espressif/esp-idf)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-op%C8%9Bional-41BDF5?logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
