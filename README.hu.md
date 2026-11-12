@@ -60,25 +60,25 @@
 
 ---
 
-## 🏗️ Arhitectură
+## 🏗️ Architektúra
 
-Termostatul folosește un **design hibrid**: ESP32-S3 este „creierul”, iar Home Assistant este un strat suplimentar opțional.
+A termosztát **hibrid kialakítást** használ: az ESP32-S3 az „agy", a Home Assistant pedig egy opcionális kiegészítő réteg.
 
 ```mermaid
 flowchart LR
     S["🌡️ DS18B20<br/>GPIO 17"] --> C
     subgraph ESP["ESP32-S3 · JC3248W535C"]
-        C["Buclă de control<br/>(histerezis + timp minim pornit/oprit)"]
-        T["🖐️ Interfață tactilă<br/>AXS15231"]
+        C["Vezérlési ciklus<br/>(hiszterézis + minimális be-/kikapcsolási idő)"]
+        T["🖐️ Érintőfelület<br/>AXS15231"]
         T <--> C
     end
-    C --> R["🔌 Releu<br/>GPIO 18"]
-    R --> B["🔥 Centrala termică"]
-    C <-. "API nativ (opțional)" .-> HA["🏠 Home Assistant"]
-    HA -. "temperatură exterioară + meteo" .-> C
+    C --> R["🔌 Relé<br/>GPIO 18"]
+    R --> B["🔥 Gázkazán"]
+    C <-. "Natív API (opcionális)" .-> HA["🏠 Home Assistant"]
+    HA -. "külső hőmérséklet + időjárás" .-> C
 ```
 
-**Autonom (fără Home Assistant)**
+**Önálló (Home Assistant nélkül)**
 - Citirea locală a temperaturii, evaluarea histerezisului și comanda directă a releului
 - Control manual complet de pe ecran: temperatura țintă, calibrare, histerezis, mod vacanță, luminozitate
 
