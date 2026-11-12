@@ -26,7 +26,7 @@
 
 ---
 
-> [!ATENȚIE !]
+> [!WARNING]
 > **Tensiune de rețea și sistem de încălzire pe gaz. Citește [declinarea responsabilității](#️-declinarea-responsabilității-și-siguranță) înainte de a construi orice.**
 
 ## 📑 Cuprins
