@@ -155,7 +155,7 @@ TMinden érték a flash memóriában mentődik.
 | **I²C busz | SDA `GPIO 4` · SCL `GPIO 8` | Opcionális érzékelők (pl. SHT45 / BME280) |
 | **SPI busz (kijelző)** | CLK `GPIO 47` · Adat `[21, 48, 40, 39]` | Quad SPI a gyors rendereléshez |
 
-### Conectarea DS18B20
+### A DS18B20 csatlakoztatása
 
 ```text
  3,3V ──┬───────────── VCC (DS18B20)
@@ -168,34 +168,34 @@ TMinden érték a flash memóriában mentődik.
 ```
 
 > [!WARNING]
-> **PERICOL ELECTRIC: tensiune de rețea de 230 V**
-> - Conectarea releului la sistemul de încălzire implică lucrul cu tensiune de rețea.
-> - Deconectează de la rețea **atât** centrala, cât și sursa de alimentare a termostatului, înainte de a atinge orice conexiune.
-> - Dacă nu ești sigur sau nu ești calificat, **apelează la un electrician autorizat**.
+> **ELEKTROMOS VESZÉLY: 230 V-os hálózati feszültség**
+> - A relé fűtési rendszerhez való csatlakoztatása hálózati feszültséggel való munkát jelent.
+> - Bármilyen csatlakozás megérintése előtt mind a kazánt, mind a termosztát tápegységét válaszd le a hálózatról.
+> - Ha nem vagy biztos a dolgodban, vagy nem vagy képzett, fordulj szakképzett villanyszerelőhöz.**.
 
 ---
 
-## 🚀 Instalare
+## 🚀 Telepítés
 
-**Mediul testat**
+**Tesztelt környezet**
 
-| Instrument | Versiune |
+| Eszköz | Verzió |
 | :--- | :--- |
-| Sistem de operare | Windows, Linux sau macOS (terminal) |
+| Operációs rendszer | Windows, Linux vagy macOS (terminál) |
 | Python | `3.11.6+` |
 | ESPHome | `2025.11.0+` |
-| Framework | `ESP-IDF` (configurat automat prin `platformio_options` în fișierul YAML) |
+| Framework | `ESP-IDF` (automatikusan konfigurálva a `platformio_options` révén a YAML fájlban) |
 
-### 1️⃣ Clonează repository-ul
+### 1️⃣ Klónozd a repository-t
 
 ```bash
 git clone https://github.com/DaradiciLevente/jc3248w535c-esphome-termostat.git
 cd jc3248w535c-esphome-termostat
 ```
 
-### 2️⃣ Configurează `secrets.yaml`
+### 2️⃣ Konfiguráld a `secrets.yaml` fájlt
 
-Creează și actualizează fișierul `secrets.yaml` în directorul tău de configurare ESPHome:
+Hozd létre vagy frissítsd a secrets.yaml fájlt az ESPHome konfigurációs könyvtáradban:
 
 ```yaml
 wifi_ssid: "Your_WiFi_SSID"
@@ -208,14 +208,14 @@ api_key: "Your_Encryption_Key_Base64"
 ```
 
 > [!TIP]
-> **Generează o cheie de criptare API validă** (32 de octeți aleatori, codați în base64):
+> **Generálj egy érvényes API titkosítási kulcsot (32 véletlenszerű bájt, base64-ben kódolva):
 > ```bash
 > python -c "import base64, os; print(base64.b64encode(os.urandom(32)).decode())"
 > ```
 
-### 3️⃣ Setează entitățile din Home Assistant
+### 3️⃣ Állítsd be a Home Assistant entitásokat
 
-Editează blocul `substitutions` de la începutul fișierului YAML:
+Szerkeszd a YAML fájl elején található `substitutions` blokkot:
 
 ```yaml
 substitutions:
@@ -223,23 +223,23 @@ substitutions:
   sensor_stare_vreme: "weather.forecast_your_home"
 ```
 
-### 4️⃣ Compilează și încarcă firmware-ul
+### 4️⃣ Fordítás és firmware feltöltés
 
-Conectează placa prin USB și rulează:
+Csatlakoztasd a kártyát USB-n keresztül, és futtasd:
 
 ```bash
 esphome run termostat-esphome.yaml
 ```
 
 > [!NOTE]
-> După primul flash, odată ce dispozitivul este conectat de rețeaua ta WiFi, actualizările ulterioare se pot face **prin aer (OTA)**.
+> Az első feltöltés után, amint az eszköz csatlakozott a Wi-Fi hálózatodhoz, a további frissítések vezeték nélkül (OTA) végezhetők.**.
 
 ---
 
-## 🩺 Depanare
+## 🩺 Hibaelhárítás
 
 <details>
-<summary><b>🌡️ DS18B20 afișează <code>85.0 °C</code> sau <code>--.-</code></b></summary>
+<summary><b>🌡️ A DS18B20 <code>85.0 °C</code> vagy <code>--.-</code>-t mutat</b></summary>
 
 <br>
 
