@@ -79,81 +79,81 @@ flowchart LR
 ```
 
 **Önálló (Home Assistant nélkül)**
-- Citirea locală a temperaturii, evaluarea histerezisului și comanda directă a releului
-- Control manual complet de pe ecran: temperatura țintă, calibrare, histerezis, mod vacanță, luminozitate
+- Helyi hőmérséklet-olvasás, hiszterézis-kiértékelés és a relé közvetlen vezérlése
+- Teljes manuális vezérlés a képernyőről: célhőmérséklet, kalibráció, hiszterézis, nyaralási mód, fényerő
 
-**Cu Home Assistant (funcții extinse)**
-- Sincronizarea temperaturilor țintă și a modului vacanță
-- Temperatura exterioară și pictograma stării vremii (`weather.forecast_home`)
-- Monitorizare la distanță și automatizări din dashboard-urile tale
+**Home Assistanttel (bővített funkciók)**
+- A célhőmérséklet és a nyaralási mód szinkronizálása
+- Külső hőmérséklet és időjárás-ikon (weather.forecast_home)
+- Távoli monitorozás és automatizálások a dashboardjaidból
 
 ---
 
-## 📸 Capturi de ecran
+## 📸 Képernyőképek
 
-| Ecranul principal | Meniul de setări |
+| Főképernyő | Beállítási menü |
 | :---: | :---: |
-| <img src="images/main2.jpg" alt="Ecranul principal" width="300"> | <img src="images/settings.jpg" alt="Meniul de setări" width="300"> |
+| <img src="images/main2.jpg" alt="Főképernyő" width="300"> | <img src="images/settings.jpg" alt="Beállítási menü" width="300"> |
 
 
 ---
 
-## 📱 Ghidul interfeței tactile
+## 📱 Az érintőfelület útmutatója
 
-Interfața rulează pe un ecran IPS capacitiv de 3,5" (controler `AXS15231`) și este randată cu motorul de afișare ESPHome.
+A felület egy 3,5"-os kapacitív IPS kijelzőn fut (AXS15231 vezérlő), és az ESPHome kijelzőmotorja rendereli.
 
-### Ecranul principal
+### Főképernyő
 
-| Element | Descriere |
+| Elem | Leírás |
 | :--- | :--- |
-| 🕐 **Ceas și dată** | Sincronizate prin SNTP, pentru fusul tău orar |
-| 📶 **Rețea și vreme** | Intensitatea semnalului Wi-Fi, plus temperatura exterioară și pictograma vremii (din Home Assistant) |
-| 🌡️ **Temperatura din cameră** | Afișaj mare, cu valoarea citită de DS18B20, cu offset de calibrare |
-| 🎯 **Temperatura țintă** | Valoarea setată curent (sau cea din modul vacanță) |
-| 🔥 **Starea încălzirii** | `ÎNCĂLZIRE` (încălzire activă, cu flacără animată) · `REPAUS` (în așteptare) · `OPRIT` (termostat oprit) |
-| ➕➖ **Comenzi rapide** | Ajustezi temperatura țintă în pași de **0,5 °C** |
-| ⚙️ **Setări** | Pictograma roată dințată (dreapta sus) deschide meniul de setări |
+| 🕐 **Óra és dátum** | SNTP-n keresztül szinkronizálva, a te időzónádnak megfelelően |
+| 📶 **Hálózat és időjárás** | Wi-Fi jelerősség, valamint a külső hőmérséklet és az időjárás-ikon (a Home Assistantből) |
+| 🌡️ **Szobahőmérséklet** | Nagy kijelzés, a DS18B20 által mért értékkel, kalibrációs eltolással |
+| 🎯 **Célhőmérséklet** | Az aktuálisan beállított érték (vagy a nyaralási mód értéke) |
+| 🔥 **Fűtési állapot** | FŰTÉS (aktív fűtés, animált lánggal) · SZÜNETEL (készenlét) · KIKAPCSOLVA (termosztát kikapcsolva) |
+| ➕➖ **Gyorsvezérlők** | A célhőmérséklet 0,5 °C-os lépésekben állítható** |
+| ⚙️ **Beállítások** | A fogaskerék ikon (jobb felső sarok) nyitja meg a beállítási menüt |
 
-### Meniul de setări
+Beállítási menü
 
-Toate valorile sunt salvate în memoria flash.
+TMinden érték a flash memóriában mentődik.
 
-| Setare | Interval / Opțiuni |
+| Beállítás | Tartomány / Opciók |
 | :--- | :--- |
-| **Unitate de măsură** | °C / °F |
-| **Calibrare** | −5,0 °C … +5,0 °C |
-| **Histerezis** | 0,1 °C … 2,0 °C |
-| **Timp minim** (pornit/oprit) | 0 … 600 s |
-| **Mod Vacanță** | PORNIT / OPRIT |
-| **Temp. Vacanță** | 5,0 °C … 20,0 °C |
-| **Luminozitate** | 10 % … 100 % |
-| **Afișarea temperaturii exterioare** | Afișată / ascunsă pe ecranul principal |
+| **Mértékegység** | °C / °F |
+| **Kalibráció* | −5,0 °C … +5,0 °C |
+| **Hiszterézis** | 0,1 °C … 2,0 °C |
+| **Minimális idő** (be/ki) | 0 … 600 s |
+| **Nyaralási mód** | BE / KI |
+| **Nyaralási hőmérséklet** | 5,0 °C … 20,0 °C |
+| **Fényerő** | 10 % … 100 % |
+| **Külső hőmérséklet kijelzése** | Megjelenítve / elrejtve a főképernyőn |
 
 ---
 
-## 🧰 Hardware și conexiuni
+## 🧰 Hardver és csatlakozások
 
-### Lista de componente
+### Alkatrészlista
 
-| Componentă | Note |
+| Alkatrész | Megjegyzés |
 | :--- | :--- |
-| **JC3248W535C** | Placă ESP32-S3 cu ecran IPS capacitiv tactil de 3,5" |
-| **DS18B20** | Senzor de temperatură 1-Wire |
-| **Rezistor 4,7 kΩ** | Pull-up între DATA și 3,3 V |
-| **Modul releu** | Dimensionat pentru circuitul de comandă al centralei tale |
-| **Sursă de alimentare 5 V** | Alimentare stabilă pentru placă |
+| **JC3248W535C** | ESP32-S3 kártya 3,5"-os kapacitív érintős IPS kijelzővel |
+| **DS18B20** | 1-Wire hőmérséklet-érzékelő |
+| **4,7 kΩ-os ellenállás** | Pull-up a DATA és a 3,3 V között|
+| **Relé modul** | A kazánod vezérlőáramköréhez méretezve |
+| **5 V-os tápegység** | Stabil tápellátás a kártyához |
 
-### Alocarea pinilor
+### Csatlakozókiosztás
 
-| Componentă | Pin / Interfață | Descriere |
+| Alkatrész| Csatlakozó / Interfész | Leírás |
 | :--- | :--- | :--- |
-| **Ecran** | `JC3248W535C` | Ecran IPS capacitiv tactil de 3,5" (QSPI) |
-| **Controler tactil** | `AXS15231` | Interfață tactilă capacitivă integrată |
-| **PWM iluminare fundal** | `GPIO 1` | Controlul luminozității prin LEDC |
-| **DS18B20** | `GPIO 17` | Linie de date 1-Wire (necesită pull-up de 4,7 kΩ) |
-| **Releu încălzire** | `GPIO 18` | Ieșire digitală către modulul releu al centralei |
-| **Magistrală I²C** | SDA `GPIO 4` · SCL `GPIO 8` | Senzori opționali (de ex. SHT45 / BME280) |
-| **Magistrală SPI (ecran)** | CLK `GPIO 47` · Date `[21, 48, 40, 39]` | Quad SPI pentru randare rapidă |
+| **Kijelző** | `JC3248W535C` | 3,5"-os kapacitív érintős IPS kijelző (QSPI) |
+| **Érintővezérlő** | `AXS15231` | Integrált kapacitív érintőfelület |
+| **Háttérvilágítás PWM** | `GPIO 1` | Fényerő vezérlése LEDC-n keresztül |
+| **DS18B20** | `GPIO 17` | 1-Wire adatvonal (4,7 kΩ-os pull-up szükséges) |
+| **Fűtés relé** | `GPIO 18` | Digitális kimenet a kazán relé modulja felé |
+| **I²C busz | SDA `GPIO 4` · SCL `GPIO 8` | Opcionális érzékelők (pl. SHT45 / BME280) |
+| **SPI busz (kijelző)** | CLK GPIO 47 · Adat [21, 48, 40, 39] | Quad SPI a gyors rendereléshez |
 
 ### Conectarea DS18B20
 
