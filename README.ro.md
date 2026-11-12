@@ -232,7 +232,7 @@ esphome run termostat-esphome.yaml
 ```
 
 > [!NOTE]
-> După primul flash, odată ce dispozitivul este în rețeaua ta, actualizările ulterioare se pot face **prin aer (OTA)**.
+> După primul flash, odată ce dispozitivul este în rețeaua ta WiFi, actualizările ulterioare se pot face **prin aer (OTA)**.
 
 ---
 
