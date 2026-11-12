@@ -243,27 +243,27 @@ esphome run termostat-esphome.yaml
 
 <br>
 
-**Cauză:** `85.0 °C` este valoarea implicită a cipului la pornire și indică o problemă de comunicație sau de cablare.
+**Ok: A ** `85.0 °C` a chip alapértelmezett értéke bekapcsoláskor, és kommunikációs vagy bekötési problémára utal.
 
-**Soluție:**
-- Verifică cablarea pe `GPIO 17`.
-- Asigură-te că un **rezistor pull-up de 4,7 kΩ** leagă linia DATA de 3,3 V.
-- Verifică dacă senzorul primește o alimentare stabilă de 3,3 V.
-- Firmware-ul filtrează valorile de `85.0 °C` și pe cele din afara intervalului, dar o cablare corectă rămâne esențială.
+**Megoldás::**
+- Ellenőrizd a bekötést a `GPIO 17`-en..
+- Győződj meg róla, hogy egy 4,7 kΩ-os pull-up ellenállás köti össze a DATA vonalat a 3,3 V-tal.
+- Ellenőrizd, hogy az érzékelő stabil 3,3 V-os tápot kap.
+- A firmware kiszűri a `85.0 °C`-os és a tartományon kívüli értékeket, de a helyes bekötés elengedhetetlen.
 
 </details>
 
 <details>
-<summary><b>🖥️ Ecranul rămâne negru sau atingerea nu răspunde</b></summary>
+<summary><b>🖥️ A képernyő fekete marad, vagy az érintés nem válaszol</b></summary>
 
 <br>
 
-**Cauză:** definiții greșite ale pinilor sau o nepotrivire în configurația SPI/ecran.
+**Ok:** Hibás csatlakozó-definíciók vagy az SPI/kijelző konfiguráció eltérése..
 
-**Soluție:**
-- Confirmă că placa ta este exact **JC3248W535C** (ESP32-S3, ecran QSPI, touch `AXS15231`).
-- Verifică pinii SPI (`CLK: 47`, Date: `[21, 48, 40, 39]`) și pinii I²C (`SDA: 4`, `SCL: 8`) față de revizia PCB-ului tău.
-- Inspectează logurile seriale pentru bucle de repornire sau erori de driver:
+**Megoldás:**
+- Erősítsd meg, hogy a kártyád pontosan **JC3248W535C** (ESP32-S3, QSPI kijelző, `AXS15231` touch).
+- Ellenőrizd az SPI lábakat (`CLK: 47`, Adat: `[21, 48, 40, 39]`) és az I²C lábakat (`SDA: 4`, `SCL: 8`) a PCB revíziódhoz képest.
+- Vizsgáld meg a soros naplókat újraindítási ciklusok vagy illesztőprogram-hibák után:
   ```bash
   esphome logs termostat-esphome.yaml
   ```
@@ -271,66 +271,66 @@ esphome run termostat-esphome.yaml
 </details>
 
 <details>
-<summary><b>📶 Conectarea la Wi-Fi eșuează la pornire</b></summary>
+<summary><b>📶 A Wi-Fi csatlakozás meghiúsul bekapcsoláskor</b></summary>
 
 <br>
 
-**Cauză:** credențiale greșite în `secrets.yaml` sau semnal slab.
+**Ok:** Hibás hitelesítő adatok a `secrets.yaml`-ban, vagy gyenge jel.
 
-**Soluție:**
-- Verifică din nou `wifi_ssid` și `wifi_password`.
-- Dacă rețeaua principală nu poate fi atinsă, dispozitivul pornește propriul punct de acces de rezervă (`ap_ssid`). Conectează-te la el pentru a verifica logurile sau pentru a actualiza credențialele prin OTA.
+**Megoldás:**
+- Ellenőrizd újra a `wifi_ssid` és `wifi_password` értékeket..
+- Ha a fő hálózat nem érhető el, az eszköz elindítja a saját tartalék hozzáférési pontját (`ap_ssid`). Csatlakozz hozzá a naplók ellenőrzéséhez vagy a hitelesítő adatok OTA-n keresztüli frissítéséhez.
 
 </details>
 
 ---
 
-## 🗺️ Plan de dezvoltare
+## 🗺️ Fejlesztési terv
 
-Proiectul este în dezvoltare activă. Documentația și funcționalitățile sunt încă în evoluție.
+A projekt aktív fejlesztés alatt áll. A dokumentáció és a funkciók még fejlődnek.
 
-- [x] Buclă de control locală cu histerezis și timp minim pornit/oprit
-- [x] Interfață tactilă cu meniu de setări și flacără animată
-- [x] Mod vacanță și setări persistente
-- [x] Integrare cu Home Assistant (vreme + sincronizare)
-
----
-
-## 🤝 Contribuții
-
-Contribuțiile, raportările de probleme și cererile de funcționalități sunt binevenite! Consultă [pagina de issues](../../issues).
-
-1. Fă un fork al proiectului
-2. Creează o ramură pentru funcționalitatea ta: `git checkout -b feature/AmazingFeature`
-3. Fă commit modificărilor: `git commit -m 'Add some AmazingFeature'`
-4. Trimite ramura în repository: `git push origin feature/AmazingFeature`
-5. Deschide un Pull Request
+- [x] Helyi vezérlési ciklus hiszterézissel és minimális be-/kikapcsolási idővel
+- [x] Érintőfelület beállítási menüvel és animált lánggal
+- [x] Nyaralási mód és tartós beállítások
+- [x] Home Assistant integráció (időjárás + szinkronizálás)
 
 ---
 
-## ⚠️ Declinarea responsabilității și siguranță
+## 🤝 Közreműködés
+
+A közreműködések, hibajelentések és funkciókérések szívesen fogadottak! Nézd meg az [issues oldalt](../../issues).
+
+1. Forkold a projektet
+2. Hozz létre egy ágat a funkciódhoz: `git checkout -b feature/AmazingFeature`
+3. Commitold a módosításokat: `git commit -m 'Add some AmazingFeature'`
+4. Küldd fel az ágat a repository-ba: `git push origin feature/AmazingFeature`
+5. Nyiss egy Pull Requestet
+
+---
+
+## ⚠️ Felelősségkizárás és biztonság
 
 > [!WARNING]
-> - Acesta este un **proiect DIY, realizat ca hobby**. Implică electronică sensibilă, **tensiune de rețea periculoasă de 230 V** și **sisteme de încălzire pe gaz**.
-> - Este oferit **exclusiv în scop educativ și experimental**, distribuit **„CA ATARE” („AS IS”)**, fără niciun fel de garanție, expresă sau implicită.
-> - Autorul **nu** recomandă, nu susține și nu garantează utilizarea lui în instalații reale, de producție sau casnice.
-> - Autorul **nu își asumă nicio răspundere legală sau obligație** pentru daune directe sau indirecte, pierderi materiale, vătămări corporale sau accidente rezultate din utilizarea, folosirea necorespunzătoare sau implementarea acestui proiect.
-> - Prin descărcarea, clonarea sau utilizarea oricărei părți din acest cod sau din această documentație, recunoști că ești **singurul responsabil** pentru respectarea reglementărilor locale privind siguranța și instalațiile electrice și îți asumi **100% din risc și din răspunderea legală**.
+> - Ez egy hobbi DIY-projekt. Érzékeny elektronikát, **veszélyes 230 V-os hálózati feszültséget** és **gázfűtési rendszereket érint**.
+> - **Kizárólag oktatási és kísérleti célra**, kínáljuk, **„AHOGY VAN” („AS IS”)** módon, semmilyen kifejezett vagy hallgatólagos garancia nélkül.
+> - A szerző **nem** javasolja, **nem támogatja** és **nem garantálja** valós, termelési vagy háztartási rendszerekben való használatát.
+> - A szerző **semmilyen jogi felelősséget vagy kötelezettséget nem vállal** a projekt használatából, helytelen használatából vagy megvalósításából eredő közvetlen vagy közvetett károkért, anyagi veszteségekért, személyi sérülésekért vagy balesetekért.
+> - A kód vagy a dokumentáció bármely részének letöltésével, klónozásával vagy használatával elismered, hogy egyedül te vagy felelős a helyi biztonsági és elektromos előírások betartásáért, és **100%-ban magadra vállalod a kockázatot és a jogi felelősséget**.
 
 ---
 
-## 📄 Licență
+## 📄 Licenc
 
-Distribuit sub **Licența MIT**. Consultă fișierul [`LICENSE`](LICENSE) pentru detalii.
+Az MIT licenc alatt terjesztve. A részletekért lásd a [`LICENSE`](LICENSE) fájlt.
 
 ---
 
 <div align="center">
 
-*Creat cu pasiune pentru makeri, pasionați de DIY și entuziaști ai casei inteligente.*
+*Szenvedéllyel készült makereknek, DIY-rajongóknak és okosotthon-rajongóknak.*
 
-**Realizat de [Levente Daradici](https://github.com/DaradiciLevente)** 🚀
+**Készítette: [Levente Daradici](https://github.com/DaradiciLevente)** 🚀
 
-⭐ Dacă acest proiect ți-a fost de folos, gândește-te să-i dai o stea!
+⭐ Ha ez a projekt hasznos volt számodra, fontold meg, hogy adsz neki egy csillagot!
 
 </div>
